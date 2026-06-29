@@ -1,195 +1,151 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Repetidos Scanner</title>
+<meta charset="UTF-8">
+<title>Scanner Cromos Panini</title>
 
-  <!-- OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- EXCEL EXPORT -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 { font-size: 22px; }
-
-    video, canvas {
-      width: 90%;
-      max-width: 400px;
-      border-radius: 12px;
-      margin-top: 10px;
-    }
-
-    button {
-      margin: 8px;
-      padding: 12px 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    .btn {
-      background: #38bdf8;
-      color: black;
-      font-weight: bold;
-    }
-
-    .danger {
-      background: #ef4444;
-      color: white;
-    }
-
-    .box {
-      background: #1e293b;
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 12px;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      padding: 5px 0;
-      border-bottom: 1px solid #334155;
-    }
-  </style>
+<style>
+body { font-family: Arial; background:#111; color:#eee; padding:20px; }
+h2 { color:#00d4ff; }
+textarea { width:100%; height:150px; }
+button { padding:10px; margin:5px; cursor:pointer; }
+input, button { font-size:14px; }
+#log { margin-top:15px; white-space:pre-wrap; background:#222; padding:10px; }
+table { width:100%; margin-top:15px; border-collapse: collapse; }
+td, th { border:1px solid #444; padding:5px; }
+img { max-width:200px; margin-top:10px; }
+</style>
 </head>
 
 <body>
 
-<h1>📸 Scanner de Repetidos</h1>
+<h2>📸 Scanner Cromos Panini (Repetidos)</h2>
 
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas" style="display:none;"></canvas>
+<p>1. Pega tu listado completo aquí:</p>
+<textarea id="db"></textarea>
+<button onclick="buildDB()">📚 Cargar base de datos</button>
+
+<hr>
+
+<p>2. Sube foto del cromo:</p>
+<input type="file" accept="image/*" capture="environment" id="fileInput">
 
 <br>
+<img id="preview"/>
 
-<button class="btn" onclick="startCamera()">🎥 Abrir cámara</button>
-<button class="btn" onclick="capture()">📸 Capturar</button>
-<button class="btn" onclick="exportExcel()">⬇️ Exportar Excel</button>
-<button class="danger" onclick="clearData()">🗑️ Borrar todo</button>
+<br>
+<button onclick="processImage()">🔎 Analizar cromo</button>
 
-<div class="box">
-  <h3>📦 Estado OCR</h3>
-  <div id="status">Esperando cámara...</div>
-</div>
+<button onclick="exportExcel()">📁 Exportar Excel</button>
 
-<div class="box">
-  <h3>📊 Repetidos</h3>
-  <ul id="list"></ul>
-</div>
+<div id="log"></div>
+
+<table id="table">
+<thead>
+<tr>
+<th>Código</th>
+<th>Jugador</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 
 <script>
-let video = document.getElementById("video");
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
 
-let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
+let DB = {};      // mapa AUS 6 -> jugador
+let results = [];
 
-render();
+// -------------------------
+// Construir base de datos
+// -------------------------
+function buildDB() {
+    DB = {};
+    const text = document.getElementById("db").value.split("\n");
 
-async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
-    });
-    video.srcObject = stream;
-    document.getElementById("status").innerText = "Cámara activa ✅";
-  } catch (e) {
-    document.getElementById("status").innerText = "Error cámara ❌";
-  }
-}
-
-function capture() {
-  if (!video.srcObject) {
-    alert("Primero abre la cámara");
-    return;
-  }
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0);
-
-  document.getElementById("status").innerText = "Procesando OCR... ⏳";
-
-  canvas.toBlob(async (blob) => {
-    const result = await Tesseract.recognize(blob, "eng", {
-      logger: m => console.log(m)
-    });
-
-    let text = result.data.text;
-
-    // detectar códigos tipo 823 / MEX 12 / POR 15
-    let matches = text.match(/\b[A-Z]{0,4}\s?\d{1,4}\b|\b\d{2,4}\b/g);
-
-    if (!matches) {
-      document.getElementById("status").innerText = "No detectado ❌";
-      return;
+    for (let line of text) {
+        // ejemplo: 294 - AUS 6 - Jordan Bos - Australia
+        let match = line.match(/(\d+)\s*-\s*([A-Z]{3})\s*0*(\d+)\s*-\s*(.+)/);
+        if (match) {
+            let key = match[2] + " " + match[3];
+            DB[key.trim()] = line.trim();
+        }
     }
 
-    matches.forEach(code => {
-      code = code.trim();
-      if (!data[code]) data[code] = 0;
-      data[code]++;
+    log("✅ Base de datos cargada: " + Object.keys(DB).length + " registros");
+}
+
+// -------------------------
+// OCR imagen
+// -------------------------
+document.getElementById("fileInput").addEventListener("change", e=>{
+    const file = e.target.files[0];
+    if(file){
+        const url = URL.createObjectURL(file);
+        document.getElementById("preview").src = url;
+    }
+});
+
+async function processImage(){
+    const file = document.getElementById("fileInput").files[0];
+    if(!file) return alert("Sube una imagen");
+
+    log("🔄 Analizando imagen...");
+
+    const { data } = await Tesseract.recognize(file, "eng", {
+        logger: m => console.log(m)
     });
 
-    localStorage.setItem("repetidos", JSON.stringify(data));
+    let text = data.text.toUpperCase();
 
-    document.getElementById("status").innerText =
-      "Detectado: " + matches.join(", ");
+    // 🔥 extracción inteligente del código
+    let match = text.match(/([A-Z]{3})\s*0*([0-9]{1,3})/);
 
-    render();
-  });
+    if(!match){
+        log("❌ No se detectó código");
+        return;
+    }
+
+    let code = match[1] + " " + match[2];
+    log("📌 Código detectado: " + code);
+
+    let player = DB[code] || "❓ No encontrado en DB";
+
+    log("👤 Resultado: " + player);
+
+    results.push({ code, player });
+
+    updateTable();
 }
 
-function render() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
+// -------------------------
+function updateTable(){
+    let tbody = document.querySelector("#table tbody");
+    tbody.innerHTML = "";
 
-  Object.entries(data)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([code, count]) => {
-      let li = document.createElement("li");
-      li.innerText = `${code} x${count}`;
-      list.appendChild(li);
+    results.forEach(r=>{
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td>${r.code}</td><td>${r.player}</td>`;
+        tbody.appendChild(tr);
     });
 }
 
-function clearData() {
-  if (!confirm("¿Borrar todo?")) return;
-  data = {};
-  localStorage.removeItem("repetidos");
-  render();
+// -------------------------
+function exportExcel(){
+    let ws = XLSX.utils.json_to_sheet(results);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Repetidos");
+
+    XLSX.writeFile(wb, "cromos_repetidos.xlsx");
 }
 
-function exportExcel() {
-  let rows = [["Codigo", "Cantidad"]];
-
-  Object.entries(data).forEach(([code, count]) => {
-    rows.push([code, count]);
-  });
-
-  let worksheet = XLSX.utils.aoa_to_sheet(rows);
-  let workbook = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Repetidos");
-
-  XLSX.writeFile(workbook, "repetidos.xlsx");
+// -------------------------
+function log(t){
+    document.getElementById("log").innerText = t;
 }
+
 </script>
 
 </body>
