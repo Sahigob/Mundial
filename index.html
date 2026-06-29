@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Repetidos Scanner</title>
+
+  <!-- OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- EXCEL EXPORT -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 { font-size: 22px; }
+
+    video, canvas {
+      width: 90%;
+      max-width: 400px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
+    button {
+      margin: 8px;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: #38bdf8;
+      color: black;
+      font-weight: bold;
+    }
+
+    .danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .box {
+      background: #1e293b;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 5px 0;
+      border-bottom: 1px solid #334155;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>📸 Scanner de Repetidos</h1>
+
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" style="display:none;"></canvas>
+
+<br>
+
+<button class="btn" onclick="startCamera()">🎥 Abrir cámara</button>
+<button class="btn" onclick="capture()">📸 Capturar</button>
+<button class="btn" onclick="exportExcel()">⬇️ Exportar Excel</button>
+<button class="danger" onclick="clearData()">🗑️ Borrar todo</button>
+
+<div class="box">
+  <h3>📦 Estado OCR</h3>
+  <div id="status">Esperando cámara...</div>
+</div>
+
+<div class="box">
+  <h3>📊 Repetidos</h3>
+  <ul id="list"></ul>
+</div>
+
+<script>
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+
+let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
+
+render();
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+    video.srcObject = stream;
+    document.getElementById("status").innerText = "Cámara activa ✅";
+  } catch (e) {
+    document.getElementById("status").innerText = "Error cámara ❌";
+  }
+}
+
+function capture() {
+  if (!video.srcObject) {
+    alert("Primero abre la cámara");
+    return;
+  }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
+
+  document.getElementById("status").innerText = "Procesando OCR... ⏳";
+
+  canvas.toBlob(async (blob) => {
+    const result = await Tesseract.recognize(blob, "eng", {
+      logger: m => console.log(m)
+    });
+
+    let text = result.data.text;
+
+    // detectar códigos tipo 823 / MEX 12 / POR 15
+    let matches = text.match(/\b[A-Z]{0,4}\s?\d{1,4}\b|\b\d{2,4}\b/g);
+
+    if (!matches) {
+      document.getElementById("status").innerText = "No detectado ❌";
+      return;
+    }
+
+    matches.forEach(code => {
+      code = code.trim();
+      if (!data[code]) data[code] = 0;
+      data[code]++;
+    });
+
+    localStorage.setItem("repetidos", JSON.stringify(data));
+
+    document.getElementById("status").innerText =
+      "Detectado: " + matches.join(", ");
+
+    render();
+  });
+}
+
+function render() {
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+
+  Object.entries(data)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([code, count]) => {
+      let li = document.createElement("li");
+      li.innerText = `${code} x${count}`;
+      list.appendChild(li);
+    });
+}
+
+function clearData() {
+  if (!confirm("¿Borrar todo?")) return;
+  data = {};
+  localStorage.removeItem("repetidos");
+  render();
+}
+
+function exportExcel() {
+  let rows = [["Codigo", "Cantidad"]];
+
+  Object.entries(data).forEach(([code, count]) => {
+    rows.push([code, count]);
+  });
+
+  let worksheet = XLSX.utils.aoa_to_sheet(rows);
+  let workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Repetidos");
+
+  XLSX.writeFile(workbook, "repetidos.xlsx");
+}
+</script>
+
+</body>
+</html>
