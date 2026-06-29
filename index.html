@@ -3,112 +3,111 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner de Repetidos</title>
+  <title>Scanner Cromos FIFA 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
-    body { background: #0f172a; color: white; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    video { width: 100%; max-width: 400px; border-radius: 12px; background: #000; }
-    button { padding: 12px 20px; margin: 5px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-    .btn-main { background: #38bdf8; color: black; }
-    .btn-del { background: #ef4444; color: white; }
-    .box { background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 15px; }
+    body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+    #video { width: 100%; max-width: 400px; border-radius: 12px; border: 4px solid #fff; background: #000; }
+    .controls { padding: 20px; }
+    button { padding: 15px 25px; margin: 5px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-main { background: #38bdf8; }
+    .btn-cap { background: #22c55e; color: white; }
+    #status { margin: 15px; padding: 10px; background: #1e293b; border-radius: 8px; font-weight: bold; }
     ul { list-style: none; padding: 0; text-align: left; }
     li { padding: 8px; border-bottom: 1px solid #334155; }
   </style>
 </head>
 <body>
 
-<h1>📸 Scanner de Repetidos</h1>
+<h1>📸 Scanner de Cromos</h1>
 
 <video id="video" autoplay playsinline></video>
-<br>
-<button class="btn-main" onclick="startCamera()">🎥 Abrir Cámara</button>
-<button class="btn-main" onclick="capture()">📸 Capturar</button>
-<button class="btn-main" onclick="exportExcel()">⬇️ Exportar Excel</button>
-<button class="btn-del" onclick="clearData()">🗑️ Borrar</button>
 
-<div class="box">
-  <div id="status">Esperando cámara...</div>
+<div class="controls">
+  <button class="btn-main" onclick="startCamera()">🎥 Abrir Cámara</button>
+  <button class="btn-cap" onclick="capture()">📸 Capturar Código</button>
+  <button class="btn-main" onclick="exportExcel()">⬇️ Exportar Excel</button>
+  <button style="background: #ef4444;" onclick="clearData()">🗑️ Borrar</button>
 </div>
 
-<div class="box">
-  <h3>📊 Repetidos</h3>
-  <ul id="list"></ul>
-</div>
+<div id="status">Presiona "Abrir Cámara"</div>
+<ul id="list"></ul>
 
 <script>
 let video = document.getElementById("video");
-let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
-
-// Render inicial
+let data = JSON.parse(localStorage.getItem("cromos") || "{}");
 render();
 
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     video.srcObject = stream;
-    document.getElementById("status").innerText = "Cámara lista ✅";
+    document.getElementById("status").innerText = "Cámara lista. Enfoca el código.";
   } catch (e) {
-    document.getElementById("status").innerText = "Error de cámara ❌";
+    document.getElementById("status").innerText = "Error: Permiso de cámara denegado.";
   }
 }
 
 async function capture() {
-  if (!video.srcObject) { alert("Abre la cámara primero"); return; }
+  const status = document.getElementById("status");
+  if (!video.srcObject) return alert("Abre la cámara primero");
   
-  document.getElementById("status").innerText = "Procesando imagen completa... ⏳";
-  
-  // Dibujamos el video completo en un canvas oculto
-  let canvas = document.createElement("canvas");
+  status.innerText = "Procesando...";
+
+  // 1. Capturamos toda la imagen para mantener la resolución máxima
+  const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
 
-  // OCR sobre la imagen completa (más estable en iPhone)
-  Tesseract.recognize(canvas, "eng").then(result => {
-    let text = result.data.text;
-    
-    // Filtro inteligente para buscar el patrón "3 letras - espacio - números"
-    let match = text.match(/[A-Z]{3}\s?\d{1,3}/);
+  // 2. OCR con configuración específica para leer texto en una línea
+  Tesseract.recognize(canvas, "eng", {
+    tessedit_pageseg_mode: 7, // Tratar la imagen como una única línea de texto
+    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+  }).then(result => {
+    // 3. BUSQUEDA INTELIGENTE
+    // Buscamos 3 letras seguidas de espacio y números (ej: "AUS 6")
+    const match = result.data.text.match(/[A-Z]{3}\s?\d{1,3}/);
 
     if (match) {
-      let code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
+      // Normalizamos el formato a "XXX 000"
+      const code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
       data[code] = (data[code] || 0) + 1;
-      localStorage.setItem("repetidos", JSON.stringify(data));
+      localStorage.setItem("cromos", JSON.stringify(data));
       render();
-      document.getElementById("status").innerText = "✅ Detectado: " + code;
+      status.innerText = "✅ Detectado: " + code;
     } else {
-      document.getElementById("status").innerText = "❌ No detectado. Prueba con más luz.";
+      status.innerText = "❌ No se leyó. Enfoca mejor el código AUS 6.";
+      console.log("OCR leyó:", result.data.text);
     }
   });
 }
 
 function render() {
-  let list = document.getElementById("list");
+  const list = document.getElementById("list");
   list.innerHTML = "";
-  Object.entries(data).sort((a,b) => b[1]-a[1]).forEach(([code, count]) => {
-    list.innerHTML += `<li>${code} <b>x${count}</b></li>`;
+  Object.entries(data).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => {
+    list.innerHTML += `<li>${k} x${v}</li>`;
   });
 }
 
 function clearData() {
-  if (confirm("¿Borrar todos los datos?")) {
+  if (confirm("¿Borrar todo?")) {
     data = {};
-    localStorage.removeItem("repetidos");
+    localStorage.removeItem("cromos");
     render();
   }
 }
 
 function exportExcel() {
-  let rows = [["Código", "Cantidad"], ...Object.entries(data)];
-  let worksheet = XLSX.utils.aoa_to_sheet(rows);
-  let workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Repetidos");
-  XLSX.writeFile(workbook, "Lista_Repetidos.xlsx");
+  const rows = [["Código", "Cantidad"], ...Object.entries(data)];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Cromos");
+  XLSX.writeFile(wb, "Cromos_Recogidos.xlsx");
 }
 </script>
-
 </body>
 </html>
