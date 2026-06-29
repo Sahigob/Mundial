@@ -3,142 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Repetidos Scanner</title>
-
-  <!-- OCR -->
+  <title>Scanner Repetidos</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-  <!-- EXCEL EXPORT -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <style>
-    body { font-family: Arial, sans-serif; background: #0f172a; color: white; text-align: center; margin: 0; padding: 20px; }
-    h1 { font-size: 22px; }
-    .camera-container { position: relative; display: inline-block; }
-    video { width: 90%; max-width: 400px; border-radius: 12px; margin-top: 10px; }
-    /* Marco visual para guiar al usuario */
-    #overlay {
-      position: absolute; top: 10px; right: 5%; width: 30%; height: 15%;
-      border: 2px solid #ef4444; border-radius: 8px; pointer-events: none;
-    }
-    button { margin: 8px; padding: 12px 14px; border: none; border-radius: 10px; font-size: 15px; cursor: pointer; }
-    .btn { background: #38bdf8; color: black; font-weight: bold; }
-    .danger { background: #ef4444; color: white; }
-    .box { background: #1e293b; margin-top: 15px; padding: 10px; border-radius: 12px; }
-    ul { list-style: none; padding: 0; }
-    li { padding: 5px 0; border-bottom: 1px solid #334155; }
-  </style>
 </head>
+<body style="background:#0f172a; color:white; font-family:sans-serif; text-align:center; padding:20px;">
 
-<body>
-
-<h1>📸 Scanner de Repetidos</h1>
-
-<div class="camera-container">
-  <video id="video" autoplay playsinline></video>
-  <div id="overlay"></div> <!-- Ayuda visual -->
-</div>
-
-<br>
-<button class="btn" onclick="startCamera()">🎥 Abrir cámara</button>
-<button class="btn" onclick="capture()">📸 Capturar</button>
-<button class="btn" onclick="exportExcel()">⬇️ Exportar Excel</button>
-<button class="danger" onclick="clearData()">🗑️ Borrar todo</button>
-
-<div class="box">
-  <h3>📦 Estado OCR</h3>
-  <div id="status">Esperando cámara...</div>
-</div>
-
-<div class="box">
-  <h3>📊 Repetidos</h3>
-  <ul id="list"></ul>
-</div>
-
-<script>
-let video = document.getElementById("video");
-let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
-
-render();
-
-async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    video.srcObject = stream;
-    document.getElementById("status").innerText = "Cámara activa. Enfoca el código en el recuadro rojo ✅";
-  } catch (e) {
-    document.getElementById("status").innerText = "Error cámara ❌";
-  }
-}
-
-function capture() {
-  if (!video.srcObject) { alert("Primero abre la cámara"); return; }
-
-  // Crear canvas temporal para procesar solo la zona del código
-  let tempCanvas = document.createElement("canvas");
-  let ctx = tempCanvas.getContext("2d");
+  <h1>📸 Scanner</h1>
+  <video id="video" autoplay playsinline style="width:100%; max-width:400px; border-radius:12px;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <br>
+  <button onclick="startCamera()" style="padding:15px; margin:5px;">Abrir Cámara</button>
+  <button onclick="capture()" style="padding:15px; margin:5px; background:#38bdf8; border:none; border-radius:10px;">Capturar</button>
   
-  // Definir proporciones basadas en la posición del código en image_bc1d5b.png
-  // Ajustamos para capturar el área superior derecha
-  const sWidth = video.videoWidth * 0.35;
-  const sHeight = video.videoHeight * 0.15;
-  const sX = video.videoWidth * 0.65;
-  const sY = 0;
+  <div id="status" style="margin:20px; font-weight:bold;">Listo</div>
+  <ul id="list" style="text-align:left; list-style:none;"></ul>
 
-  tempCanvas.width = sWidth;
-  tempCanvas.height = sHeight;
-  ctx.drawImage(video, sX, sY, sWidth, sHeight, 0, 0, sWidth, sHeight);
+  <script>
+    let video = document.getElementById("video");
+    let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
 
-  document.getElementById("status").innerText = "Procesando código... ⏳";
-
-  tempCanvas.toBlob(async (blob) => {
-    const result = await Tesseract.recognize(blob, "eng", { logger: m => console.log(m) });
-    let text = result.data.text.trim();
-
-    // Regex para buscar el formato: Tres letras, espacio y números (ej: AUS 6)
-    let match = text.match(/[A-Z]{3}\s?\d{1,3}/);
-
-    if (!match) {
-      document.getElementById("status").innerText = "No detectado, intenta centrar mejor ❌";
-      return;
+    async function startCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      video.srcObject = stream;
     }
 
-    let code = match[0].replace(/(\D{3})(\d+)/, '$1 $2'); // Asegurar formato con espacio
-    data[code] = (data[code] || 0) + 1;
+    async function capture() {
+      let canvas = document.getElementById("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
 
-    localStorage.setItem("repetidos", JSON.stringify(data));
-    document.getElementById("status").innerText = "Detectado: " + code + " ✅";
-    render();
-  });
-}
+      document.getElementById("status").innerText = "Procesando...";
 
-function render() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
-  Object.entries(data)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([code, count]) => {
-      let li = document.createElement("li");
-      li.innerText = `${code} x${count}`;
-      list.appendChild(li);
-    });
-}
+      // Usamos Tesseract directamente sobre el canvas completo
+      Tesseract.recognize(canvas, "eng").then(result => {
+        let text = result.data.text;
+        
+        // FILTRO: Buscamos específicamente el patrón de 3 letras + espacio + numero
+        // Ejemplo: "AUS 6"
+        let regex = /[A-Z]{3}\s?\d{1,3}/;
+        let match = text.match(regex);
 
-function clearData() {
-  if (!confirm("¿Borrar todo?")) return;
-  data = {};
-  localStorage.removeItem("repetidos");
-  render();
-}
+        if (match) {
+          let code = match[0].replace(/(\D{3})(\d+)/, '$1 $2');
+          data[code] = (data[code] || 0) + 1;
+          localStorage.setItem("repetidos", JSON.stringify(data));
+          render();
+          document.getElementById("status").innerText = "Detectado: " + code;
+        } else {
+          document.getElementById("status").innerText = "No se vio el código, intenta otra vez";
+        }
+      });
+    }
 
-function exportExcel() {
-  let rows = [["Codigo", "Cantidad"], ...Object.entries(data)];
-  let worksheet = XLSX.utils.aoa_to_sheet(rows);
-  let workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Repetidos");
-  XLSX.writeFile(workbook, "repetidos.xlsx");
-}
-</script>
-
+    function render() {
+      let list = document.getElementById("list");
+      list.innerHTML = "";
+      Object.entries(data).forEach(([code, count]) => {
+        let li = document.createElement("li");
+        li.innerText = `${code} x${count}`;
+        list.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
