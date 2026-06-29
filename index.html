@@ -3,89 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Repetidos</title>
+  <title>Scanner de Repetidos</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <style>
-    body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 10px; }
-    #video { width: 100%; max-width: 400px; border-radius: 12px; border: 2px solid #38bdf8; }
-    button { padding: 15px 25px; margin: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-    .btn-cam { background: #38bdf8; }
-    .btn-cap { background: #22c55e; color: white; }
-    #status { margin: 15px; padding: 10px; background: #1e293b; border-radius: 8px; min-height: 20px; }
+    body { background: #0f172a; color: white; font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    video { width: 100%; max-width: 400px; border-radius: 12px; background: #000; }
+    button { padding: 12px 20px; margin: 5px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-main { background: #38bdf8; color: black; }
+    .btn-del { background: #ef4444; color: white; }
+    .box { background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 15px; }
+    ul { list-style: none; padding: 0; text-align: left; }
+    li { padding: 8px; border-bottom: 1px solid #334155; }
   </style>
 </head>
 <body>
 
-<h1>📸 Scanner</h1>
+<h1>📸 Scanner de Repetidos</h1>
+
 <video id="video" autoplay playsinline></video>
 <br>
-<button class="btn-cam" onclick="startCamera()">Abrir Cámara</button>
-<button class="btn-cap" onclick="capture()">Capturar</button>
+<button class="btn-main" onclick="startCamera()">🎥 Abrir Cámara</button>
+<button class="btn-main" onclick="capture()">📸 Capturar</button>
+<button class="btn-main" onclick="exportExcel()">⬇️ Exportar Excel</button>
+<button class="btn-del" onclick="clearData()">🗑️ Borrar</button>
 
-<div id="status">Esperando...</div>
-<ul id="list" style="list-style:none; padding:0; text-align:left; font-size:14px;"></ul>
+<div class="box">
+  <div id="status">Esperando cámara...</div>
+</div>
+
+<div class="box">
+  <h3>📊 Repetidos</h3>
+  <ul id="list"></ul>
+</div>
 
 <script>
 let video = document.getElementById("video");
 let data = JSON.parse(localStorage.getItem("repetidos") || "{}");
+
+// Render inicial
 render();
 
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  video.srcObject = stream;
-  document.getElementById("status").innerText = "Enfoca el código arriba a la derecha";
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    video.srcObject = stream;
+    document.getElementById("status").innerText = "Cámara lista ✅";
+  } catch (e) {
+    document.getElementById("status").innerText = "Error de cámara ❌";
+  }
 }
 
 async function capture() {
-  const status = document.getElementById("status");
-  status.innerText = "Procesando...";
+  if (!video.srcObject) { alert("Abre la cámara primero"); return; }
+  
+  document.getElementById("status").innerText = "Procesando imagen completa... ⏳";
+  
+  // Dibujamos el video completo en un canvas oculto
+  let canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
 
-  const tempCanvas = document.createElement("canvas");
-  const ctx = tempCanvas.getContext("2d");
-
-  // Ajustes de recorte (si no lo lee, cambia estos valores ligeramente)
-  const clipWidth = video.videoWidth * 0.4;
-  const clipHeight = video.videoHeight * 0.2;
-  const clipX = video.videoWidth * 0.6; 
-  const clipY = video.videoHeight * 0.05;
-
-  tempCanvas.width = clipWidth;
-  tempCanvas.height = clipHeight;
-  ctx.drawImage(video, clipX, clipY, clipWidth, clipHeight, 0, 0, clipWidth, clipHeight);
-
-  try {
-    const { data: { text } } = await Tesseract.recognize(tempCanvas, "eng", {
-      tessedit_pageseg_mode: 7, // Modo línea única
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    });
-
-    // Limpieza: junta el texto y busca el patrón
-    let clean = text.replace(/[^A-Z0-9]/g, '');
-    // Intenta encontrar 3 letras seguidas de 1 a 3 números
-    let match = clean.match(/([A-Z]{3})(\d{1,3})/);
+  // OCR sobre la imagen completa (más estable en iPhone)
+  Tesseract.recognize(canvas, "eng").then(result => {
+    let text = result.data.text;
+    
+    // Filtro inteligente para buscar el patrón "3 letras - espacio - números"
+    let match = text.match(/[A-Z]{3}\s?\d{1,3}/);
 
     if (match) {
-      let code = match[1] + " " + match[2];
+      let code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
       data[code] = (data[code] || 0) + 1;
       localStorage.setItem("repetidos", JSON.stringify(data));
       render();
-      status.innerText = "✅ Detectado: " + code;
+      document.getElementById("status").innerText = "✅ Detectado: " + code;
     } else {
-      status.innerText = "❌ No detectado. Intentó leer: " + clean;
+      document.getElementById("status").innerText = "❌ No detectado. Prueba con más luz.";
     }
-  } catch (e) {
-    status.innerText = "Error: " + e.message;
-  }
+  });
 }
 
 function render() {
   let list = document.getElementById("list");
   list.innerHTML = "";
-  Object.entries(data).sort((a,b) => b[1]-a[1]).forEach(([k,v]) => {
-    list.innerHTML += `<li>${k} - Cantidad: ${v}</li>`;
+  Object.entries(data).sort((a,b) => b[1]-a[1]).forEach(([code, count]) => {
+    list.innerHTML += `<li>${code} <b>x${count}</b></li>`;
   });
 }
+
+function clearData() {
+  if (confirm("¿Borrar todos los datos?")) {
+    data = {};
+    localStorage.removeItem("repetidos");
+    render();
+  }
+}
+
+function exportExcel() {
+  let rows = [["Código", "Cantidad"], ...Object.entries(data)];
+  let worksheet = XLSX.utils.aoa_to_sheet(rows);
+  let workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Repetidos");
+  XLSX.writeFile(workbook, "Lista_Repetidos.xlsx");
+}
 </script>
+
 </body>
 </html>
