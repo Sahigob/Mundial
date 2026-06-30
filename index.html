@@ -3,92 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Firebase</title>
+  <title>Scanner Cromos Pro</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    // --- COPIA AQUÍ TU CONFIGURACIÓN DE FIREBASE ---
-    const firebaseConfig = {
-      databaseURL: "TU_URL_DE_DATABASE_FIREBASE"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    window.db = db; // Para acceso global
-  </script>
-
   <style>
-    body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-    video { width: 100%; max-width: 400px; border-radius: 12px; }
-    button { padding: 12px; margin: 5px; border-radius: 8px; border: none; cursor: pointer; }
-    .box { background: #1e293b; padding: 15px; border-radius: 12px; margin-top: 15px; }
+    body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; }
+    #video { width: 100%; max-width: 500px; border-radius: 12px; border: 4px solid #38bdf8; }
+    .controls { padding: 15px; }
+    button { padding: 15px 25px; margin: 10px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
 
-<h1>📸 Scanner Cloud</h1>
+<h1>📸 Scanner de Cromos</h1>
 <video id="video" autoplay playsinline></video>
-<br>
-<button onclick="startCamera()">Abrir Cámara</button>
-<button onclick="capture()" style="background:#22c55e; color:white;">Capturar</button>
-<button onclick="exportExcel()">⬇️ Excel</button>
-
-<div class="box" id="status">Esperando...</div>
-<ul id="list" style="text-align:left;"></ul>
+<div class="controls">
+  <button onclick="startCamera()">🎥 Abrir Cámara</button>
+  <button onclick="capture()" style="background:#22c55e;">📸 Capturar con Zoom</button>
+</div>
+<div id="status">Esperando...</div>
 
 <script>
 let video = document.getElementById("video");
-let localData = {};
-
-// Sincronizar con Firebase en tiempo real
-setTimeout(() => {
-  if(window.db) {
-    onValue(ref(window.db, 'cromos'), (snapshot) => {
-      localData = snapshot.val() || {};
-      render();
-    });
-  }
-}, 1000);
+let data = JSON.parse(localStorage.getItem("cromos") || "{}");
 
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  const stream = await navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: "environment" } 
+  });
   video.srcObject = stream;
 }
 
 async function capture() {
+  document.getElementById("status").innerText = "Procesando...";
+  
   const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  canvas.width = 1200; 
+  canvas.height = 600;
+  const ctx = canvas.getContext("2d");
 
-  const { data: { text } } = await Tesseract.recognize(canvas, "eng");
-  const match = text.match(/[A-Z]{3}\s?\d{1,3}/);
+  // ZOOM DIGITAL: Capturamos el centro y lo estiramos al canvas
+  const zoom = 2.0; 
+  const sWidth = video.videoWidth / zoom;
+  const sHeight = video.videoHeight / zoom;
+  const sx = (video.videoWidth - sWidth) / 2;
+  const sy = (video.videoHeight - sHeight) / 2;
 
-  if (match) {
-    const code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
-    
-    // Sumar 1 en Firebase
-    const updates = {};
-    updates['/cromos/' + code.replace(' ', '_')] = (localData[code.replace(' ', '_')] || 0) + 1;
-    update(ref(window.db), updates);
-    
-    document.getElementById("status").innerText = "Guardado en nube: " + code;
-  }
-}
+  // Dibujamos el centro ampliado al canvas
+  ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
-function render() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  Object.entries(localData).forEach(([k, v]) => {
-    list.innerHTML += `<li>${k.replace('_', ' ')} x${v}</li>`;
+  // Procesamos con Tesseract
+  Tesseract.recognize(canvas, "eng").then(result => {
+    const text = result.data.text;
+    const match = text.match(/[A-Z]{3}\s?\d{1,3}/);
+
+    if (match) {
+      const code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
+      data[code] = (data[code] || 0) + 1;
+      localStorage.setItem("cromos", JSON.stringify(data));
+      document.getElementById("status").innerText = "✅ Detectado: " + code + " (Total: " + data[code] + ")";
+    } else {
+      document.getElementById("status").innerText = "❌ No detectado. Centra mejor el código.";
+    }
   });
-}
-
-function exportExcel() {
-  const rows = [["Código", "Cantidad"], ...Object.entries(localData).map(([k,v]) => [k.replace('_', ' '), v])];
-  XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.aoa_to_sheet(rows), "Cromos"), "MiColeccion.xlsx");
 }
 </script>
 </body>
