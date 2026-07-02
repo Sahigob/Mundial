@@ -1,41 +1,122 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Pro FIFA 2026</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; padding: 10px; }
-    #container { position: relative; display: inline-block; width: 100%; max-width: 400px; }
-    #video { width: 100%; border-radius: 12px; border: 4px solid #38bdf8; background: #000; }
-    #frame { position: absolute; top: 5%; right: 5%; width: 40%; height: 15%; border: 4px solid #ff0000; pointer-events: none; border-radius: 8px; }
-    .controls { padding: 10px; }
-    button { padding: 12px; margin: 5px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; background: #38bdf8; color: white; }
-    ul { list-style: none; padding: 0; max-width: 400px; margin: 20px auto; text-align: left; }
-    li { background: #1e293b; margin: 5px 0; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-minus { background: #ef4444; padding: 5px 10px; border-radius: 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner Pro FIFA 2026</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+    background:#0f172a;
+    color:white;
+    text-align:center;
+    font-family:sans-serif;
+    padding:10px;
+}
+
+#container{
+    position:relative;
+    display:inline-block;
+    width:100%;
+    max-width:400px;
+}
+
+#video{
+    width:100%;
+    border-radius:12px;
+    border:4px solid #38bdf8;
+    background:#000;
+}
+
+#frame{
+    position:absolute;
+    top:2%;
+    right:5%;
+    width:40%;
+    height:15%;
+    border:4px solid #ff0000;
+    border-radius:8px;
+    pointer-events:none;
+}
+
+.controls{
+    padding:10px;
+}
+
+button{
+    padding:12px;
+    margin:5px;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    color:white;
+}
+
+.btn-camera{
+    background:#38bdf8;
+}
+
+.btn-capture{
+    background:#22c55e;
+}
+
+.btn-export{
+    background:#f59e0b;
+}
+
+ul{
+    list-style:none;
+    padding:0;
+    max-width:400px;
+    margin:20px auto;
+    text-align:left;
+}
+
+li{
+    background:#1e293b;
+    margin:5px 0;
+    padding:10px;
+    border-radius:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.btn-minus{
+    background:#ef4444;
+    padding:5px 10px;
+    border-radius:5px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>📸 Scanner Pro</h1>
+<h1>📸 Scanner Pro FIFA 2026</h1>
+
 <div id="container">
-  <video id="video" autoplay playsinline></video>
-  <div id="frame"></div>
+    <video id="video" autoplay playsinline></video>
+    <div id="frame"></div>
 </div>
 
 <div class="controls">
-  <button onclick="startCamera()">🎥 Cámara (Zoom x4)</button>
-  <button style="background:#22c55e;" onclick="capture()">📸 Capturar</button>
-  <button style="background:#f59e0b;" onclick="exportExcel()">⬇️ Excel</button>
+    <button class="btn-camera" onclick="startCamera()">🎥 Cámara</button>
+    <button class="btn-capture" onclick="capture()">📸 Capturar</button>
+    <button class="btn-export" onclick="exportExcel()">⬇️ Excel</button>
 </div>
 
-<div id="status">Encuadra el código en el recuadro rojo superior derecho.</div>
+<div id="status">
+    Encuadra el código dentro del recuadro rojo.
+</div>
+
 <ul id="list"></ul>
 
 <script>
+
 const LISTADO_OFICIAL = [
     "FWC 1", "FWC 2", "FWC 3", "FWC 4", "FWC 5", "FWC 6", "FWC 7", "FWC 8", "FWC 9", "FWC 10", "FWC 11", "FWC 12", "FWC 13", "FWC 14", "FWC 15", "FWC 16", "FWC 17", "FWC 18", "FWC 19",
     "MEX 1", "MEX 2", "MEX 3", "MEX 4", "MEX 5", "MEX 6", "MEX 7", "MEX 8", "MEX 9", "MEX 10", "MEX 11", "MEX 12", "MEX 13", "MEX 14", "MEX 15", "MEX 16", "MEX 17", "MEX 18", "MEX 19", "MEX 20",
@@ -88,78 +169,300 @@ const LISTADO_OFICIAL = [
     "PAN 1", "PAN 2", "PAN 3", "PAN 4", "PAN 5", "PAN 6", "PAN 7", "PAN 8", "PAN 9", "PAN 10", "PAN 11", "PAN 12", "PAN 13", "PAN 14", "PAN 15", "PAN 16", "PAN 17", "PAN 18", "PAN 19", "PAN 20"
 ];
 
-let video = document.getElementById("video");
-let data = JSON.parse(localStorage.getItem("cromos") || "{}");
+
+const video = document.getElementById("video");
+
+let data = JSON.parse(
+    localStorage.getItem("cromos") || "{}"
+);
+
 render();
 
-async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  video.srcObject = stream;
-  const track = stream.getVideoTracks()[0];
-  if (track.getCapabilities && track.getCapabilities().zoom) {
-    track.applyConstraints({ advanced: [{ zoom: 4.0 }] });
-  }
+async function startCamera(){
+
+    try{
+
+        const stream =
+            await navigator.mediaDevices.getUserMedia({
+                video:{
+                    facingMode:{
+                        ideal:"environment"
+                    }
+                }
+            });
+
+        video.srcObject = stream;
+
+        const track =
+            stream.getVideoTracks()[0];
+
+        if(track.getCapabilities){
+
+            const capabilities =
+                track.getCapabilities();
+
+            if(capabilities.zoom){
+
+                try{
+
+                    await track.applyConstraints({
+                        advanced:[
+                            {
+                                zoom:2.5
+                            }
+                        ]
+                    });
+
+                }catch(e){
+                    console.log("Zoom no soportado");
+                }
+            }
+        }
+
+    }catch(err){
+
+        document.getElementById("status").innerText =
+            "❌ Error al abrir la cámara";
+
+        console.error(err);
+    }
 }
 
-async function capture() {
-  const status = document.getElementById("status");
-  status.innerText = "Procesando...";
-  
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0);
+async function capture(){
 
-  const w = video.videoWidth * 0.35;
-  const h = video.videoHeight * 0.10;
-  const x = video.videoWidth * 0.60; 
-  const y = video.videoHeight * 0.03;
+    const status =
+        document.getElementById("status");
 
-  const croppedCanvas = document.createElement("canvas");
-  croppedCanvas.width = w;
-  croppedCanvas.height = h;
-  const cCtx = croppedCanvas.getContext("2d");
-  cCtx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-  
-  cCtx.filter = 'grayscale(1) contrast(3) brightness(1.2)';
-  cCtx.drawImage(croppedCanvas, 0, 0);
+    status.innerText =
+        "🔍 Procesando...";
 
-  Tesseract.recognize(croppedCanvas, "eng").then(res => {
-    let raw = res.data.text.trim().toUpperCase();
-    
-    if (raw.includes("PANINI")) {
-        status.innerText = "⚠️ Ignorado: logo detectado, reintenta...";
-        return;
+    const canvas =
+        document.createElement("canvas");
+
+    canvas.width =
+        video.videoWidth;
+
+    canvas.height =
+        video.videoHeight;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.drawImage(
+        video,
+        0,
+        0
+    );
+
+    const w =
+        video.videoWidth * 0.40;
+
+    const h =
+        video.videoHeight * 0.15;
+
+    const x =
+        video.videoWidth * 0.55;
+
+    const y =
+        video.videoHeight * 0.02;
+
+    const crop =
+        document.createElement("canvas");
+
+    crop.width =
+        w * 4;
+
+    crop.height =
+        h * 4;
+
+    const cropCtx =
+        crop.getContext("2d");
+
+    cropCtx.filter =
+        "grayscale(100%) contrast(250%) brightness(140%)";
+
+    cropCtx.drawImage(
+        canvas,
+        x,
+        y,
+        w,
+        h,
+        0,
+        0,
+        crop.width,
+        crop.height
+    );
+
+    try{
+
+        const result =
+            await Tesseract.recognize(
+                crop,
+                "eng",
+                {
+                    tessedit_char_whitelist:
+                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+                }
+            );
+
+        let raw =
+            result.data.text
+            .toUpperCase()
+            .replace(/\n/g," ")
+            .replace(/[^A-Z0-9 ]/g," ")
+            .replace(/\s+/g," ")
+            .trim();
+
+        raw = raw
+            .replace(/FWCI/g,"FWC 1")
+            .replace(/FWCL/g,"FWC 1")
+            .replace(/FWCO/g,"FWC 0")
+            .replace(/FWC-/g,"FWC ")
+            .replace(/FWC([0-9])/g,"FWC $1");
+
+        console.log("OCR:",raw);
+
+        let match =
+            LISTADO_OFICIAL.find(code =>
+                raw.includes(code)
+            );
+
+        if(!match){
+
+            let bestScore = 0;
+
+            LISTADO_OFICIAL.forEach(code => {
+
+                let score = 0;
+
+                for(
+                    let i=0;
+                    i<Math.min(code.length,raw.length);
+                    i++
+                ){
+                    if(code[i]===raw[i]){
+                        score++;
+                    }
+                }
+
+                if(score > bestScore){
+                    bestScore = score;
+                    match = code;
+                }
+
+            });
+
+            if(bestScore < 4){
+                match = null;
+            }
+        }
+
+        if(match){
+
+            data[match] =
+                (data[match] || 0) + 1;
+
+            saveAndRender();
+
+            status.innerText =
+                "✅ Detectado: " +
+                match +
+                " (" +
+                Math.round(result.data.confidence) +
+                "%)";
+
+            if(navigator.vibrate){
+                navigator.vibrate([100,50,100]);
+            }
+
+        }else{
+
+            status.innerText =
+                "❌ No detectado: " +
+                raw +
+                " (" +
+                Math.round(result.data.confidence) +
+                "%)";
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        status.innerText =
+            "⚠️ Error OCR";
+    }
+}
+
+function saveAndRender(){
+
+    localStorage.setItem(
+        "cromos",
+        JSON.stringify(data)
+    );
+
+    render();
+}
+
+function render(){
+
+    const list =
+        document.getElementById("list");
+
+    list.innerHTML = "";
+
+    Object.entries(data)
+    .sort()
+    .forEach(([code,count])=>{
+
+        list.innerHTML += `
+        <li>
+            ${code}
+            <b>x${count}</b>
+            <button
+                class="btn-minus"
+                onclick="removeOne('${code}')">
+                -
+            </button>
+        </li>`;
+    });
+}
+
+function removeOne(code){
+
+    if(data[code] > 1){
+        data[code]--;
+    }else{
+        delete data[code];
     }
 
-    const match = LISTADO_OFICIAL.find(c => raw.includes(c));
-    
-    if (match) {
-      data[match] = (data[match] || 0) + 1;
-      saveAndRender();
-      status.innerText = "✅ Detectado: " + match;
-      if (window.navigator.vibrate) window.navigator.vibrate(200);
-    } else {
-      status.innerText = "❌ No detectado: " + raw;
-    }
-  });
+    saveAndRender();
 }
 
-function saveAndRender() { localStorage.setItem("cromos", JSON.stringify(data)); render(); }
-function render() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  Object.entries(data).sort().forEach(([code, count]) => {
-    list.innerHTML += `<li>${code} <b>x${count}</b> <button class="btn-minus" onclick="removeOne('${code}')">-</button></li>`;
-  });
+function exportExcel(){
+
+    const wb =
+        XLSX.utils.book_new();
+
+    const ws =
+        XLSX.utils.aoa_to_sheet([
+            ["Código","Cantidad"],
+            ...Object.entries(data)
+        ]);
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "Cromos"
+    );
+
+    XLSX.writeFile(
+        wb,
+        "Inventario_FIFA.xlsx"
+    );
 }
-function removeOne(code) { if (data[code] > 1) data[code] -= 1; else delete data[code]; saveAndRender(); }
-function exportExcel() {
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Código", "Cantidad"], ...Object.entries(data)]), "Cromos");
-  XLSX.writeFile(wb, "Inventario_FIFA.xlsx");
-}
+
 </script>
+
 </body>
 </html>
