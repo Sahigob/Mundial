@@ -32,13 +32,11 @@
   <button style="background:#f59e0b;" onclick="exportExcel()">⬇️ Excel</button>
 </div>
 
-<div id="status">Encuadra el código en el recuadro rojo.</div>
+<div id="status">Encuadra el código en el recuadro rojo superior derecho.</div>
 <ul id="list"></ul>
 
 <script>
-// Lista completa de códigos permitidos
 const LISTADO_OFICIAL = [
-    "00 - PANINI",
     "FWC 1", "FWC 2", "FWC 3", "FWC 4", "FWC 5", "FWC 6", "FWC 7", "FWC 8", "FWC 9", "FWC 10", "FWC 11", "FWC 12", "FWC 13", "FWC 14", "FWC 15", "FWC 16", "FWC 17", "FWC 18", "FWC 19",
     "MEX 1", "MEX 2", "MEX 3", "MEX 4", "MEX 5", "MEX 6", "MEX 7", "MEX 8", "MEX 9", "MEX 10", "MEX 11", "MEX 12", "MEX 13", "MEX 14", "MEX 15", "MEX 16", "MEX 17", "MEX 18", "MEX 19", "MEX 20",
     "RSA 1", "RSA 2", "RSA 3", "RSA 4", "RSA 5", "RSA 6", "RSA 7", "RSA 8", "RSA 9", "RSA 10", "RSA 11", "RSA 12", "RSA 13", "RSA 14", "RSA 15", "RSA 16", "RSA 17", "RSA 18", "RSA 19", "RSA 20",
@@ -108,28 +106,34 @@ async function capture() {
   status.innerText = "Procesando...";
   
   const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0);
 
-  ctx.filter = 'grayscale(1) contrast(2) brightness(1.2)';
-  ctx.drawImage(canvas, 0, 0);
-
-  const w = video.videoWidth * 0.4;
-  const h = video.videoHeight * 0.15;
-  const x = video.videoWidth * 0.55; 
-  const y = video.videoHeight * 0.05;
+  const w = video.videoWidth * 0.35;
+  const h = video.videoHeight * 0.10;
+  const x = video.videoWidth * 0.60; 
+  const y = video.videoHeight * 0.03;
 
   const croppedCanvas = document.createElement("canvas");
   croppedCanvas.width = w;
   croppedCanvas.height = h;
-  croppedCanvas.getContext("2d").drawImage(canvas, x, y, w, h, 0, 0, w, h);
+  const cCtx = croppedCanvas.getContext("2d");
+  cCtx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
+  
+  cCtx.filter = 'grayscale(1) contrast(3) brightness(1.2)';
+  cCtx.drawImage(croppedCanvas, 0, 0);
 
   Tesseract.recognize(croppedCanvas, "eng").then(res => {
-    const raw = res.data.text.trim();
-    // Buscamos coincidencia en la lista oficial
-    const match = LISTADO_OFICIAL.find(c => raw.includes(c) || c.replace(' ', '').includes(raw.replace(' ', '')));
+    let raw = res.data.text.trim().toUpperCase();
+    
+    if (raw.includes("PANINI")) {
+        status.innerText = "⚠️ Ignorado: logo detectado, reintenta...";
+        return;
+    }
+
+    const match = LISTADO_OFICIAL.find(c => raw.includes(c));
     
     if (match) {
       data[match] = (data[match] || 0) + 1;
@@ -137,16 +141,12 @@ async function capture() {
       status.innerText = "✅ Detectado: " + match;
       if (window.navigator.vibrate) window.navigator.vibrate(200);
     } else {
-      status.innerText = "❌ No detectado. Intentó leer: " + raw;
+      status.innerText = "❌ No detectado: " + raw;
     }
   });
 }
 
-function saveAndRender() {
-  localStorage.setItem("cromos", JSON.stringify(data));
-  render();
-}
-
+function saveAndRender() { localStorage.setItem("cromos", JSON.stringify(data)); render(); }
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -154,13 +154,7 @@ function render() {
     list.innerHTML += `<li>${code} <b>x${count}</b> <button class="btn-minus" onclick="removeOne('${code}')">-</button></li>`;
   });
 }
-
-function removeOne(code) {
-  if (data[code] > 1) data[code] -= 1;
-  else delete data[code];
-  saveAndRender();
-}
-
+function removeOne(code) { if (data[code] > 1) data[code] -= 1; else delete data[code]; saveAndRender(); }
 function exportExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Código", "Cantidad"], ...Object.entries(data)]), "Cromos");
