@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Pro - Gestión de Inventario</title>
+  <title>Scanner Pro Cromos FIFA</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -13,7 +13,6 @@
     #frame { position: absolute; top: 5%; right: 5%; width: 40%; height: 15%; border: 4px solid #ff0000; pointer-events: none; border-radius: 8px; }
     .controls { padding: 10px; }
     button { padding: 12px; margin: 5px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; background: #38bdf8; color: white; }
-    /* Estilos para la lista */
     ul { list-style: none; padding: 0; max-width: 400px; margin: 20px auto; text-align: left; }
     li { background: #1e293b; margin: 5px 0; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
     .btn-minus { background: #ef4444; padding: 5px 10px; border-radius: 5px; }
@@ -28,9 +27,9 @@
 </div>
 
 <div class="controls">
-  <button onclick="startCamera()">🎥 Cámara</button>
+  <button onclick="startCamera()">🎥 Abrir Cámara (Zoom x4)</button>
   <button style="background:#22c55e;" onclick="capture()">📸 Capturar</button>
-  <button style="background:#f59e0b;" onclick="exportExcel()">⬇️ Excel</button>
+  <button style="background:#f59e0b;" onclick="exportExcel()">⬇️ Exportar Excel</button>
 </div>
 
 <div id="status">Encuadra el código en el recuadro rojo.</div>
@@ -39,8 +38,6 @@
 <script>
 let video = document.getElementById("video");
 let data = JSON.parse(localStorage.getItem("cromos") || "{}");
-
-// Render inicial
 render();
 
 async function startCamera() {
@@ -49,15 +46,25 @@ async function startCamera() {
   const track = stream.getVideoTracks()[0];
   if (track.getCapabilities && track.getCapabilities().zoom) {
     track.applyConstraints({ advanced: [{ zoom: 4.0 }] });
+    document.getElementById("status").innerText = "Zoom x4 aplicado.";
   }
 }
 
 async function capture() {
+  const status = document.getElementById("status");
+  status.innerText = "Procesando...";
+  
   const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  ctx.drawImage(video, 0, 0);
 
+  // Aplicar filtro de contraste alto para eliminar reflejos de cromos
+  ctx.filter = 'grayscale(1) contrast(2) brightness(1.2)';
+  ctx.drawImage(canvas, 0, 0);
+
+  // Coordenadas de recorte para el recuadro rojo
   const w = video.videoWidth * 0.4;
   const h = video.videoHeight * 0.15;
   const x = video.videoWidth * 0.55; 
@@ -74,9 +81,10 @@ async function capture() {
       const code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
       data[code] = (data[code] || 0) + 1;
       saveAndRender();
-      document.getElementById("status").innerText = "✅ Detectado: " + code;
+      status.innerText = "✅ Detectado: " + code;
+      if (window.navigator.vibrate) window.navigator.vibrate(200);
     } else {
-      document.getElementById("status").innerText = "❌ No detectado. Reintenta.";
+      status.innerText = "❌ No detectado. Ajusta el cromo en el recuadro rojo.";
     }
   });
 }
@@ -95,18 +103,15 @@ function render() {
 }
 
 function removeOne(code) {
-  if (data[code] > 1) {
-    data[code] -= 1;
-  } else {
-    delete data[code];
-  }
+  if (data[code] > 1) data[code] -= 1;
+  else delete data[code];
   saveAndRender();
 }
 
 function exportExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Código", "Cantidad"], ...Object.entries(data)]), "Cromos");
-  XLSX.writeFile(wb, "Coleccion.xlsx");
+  XLSX.writeFile(wb, "Coleccion_Cromos.xlsx");
 }
 </script>
 </body>
