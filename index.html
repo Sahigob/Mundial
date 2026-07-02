@@ -3,28 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Pro</title>
+  <title>Scanner Profesional de Cromos</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <style>
-    body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; padding: 10px; }
-    #video { width: 100%; max-width: 400px; border-radius: 12px; border: 3px solid #38bdf8; }
-    button { padding: 12px 20px; margin: 5px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+    body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+    #video { width: 100%; max-width: 450px; border-radius: 12px; border: 4px solid #38bdf8; background: #000; }
+    .btn-container { padding: 20px; }
+    button { padding: 15px 25px; margin: 8px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-cam { background: #38bdf8; color: white; }
+    .btn-cap { background: #22c55e; color: white; }
+    .btn-exc { background: #f59e0b; color: white; }
+    .btn-del { background: #ef4444; color: white; }
+    #status { margin: 15px auto; padding: 15px; background: #1e293b; border-radius: 8px; max-width: 400px; font-weight: bold; }
+    ul { list-style: none; padding: 0; max-width: 400px; margin: 0 auto; }
+    li { background: #1e293b; margin: 5px 0; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; }
   </style>
 </head>
 <body>
 
-<h1>📸 Scanner</h1>
+<h1>📸 Scanner Profesional</h1>
+
 <video id="video" autoplay playsinline></video>
 
-<div class="controls">
-  <button onclick="startCamera()">🎥 Abrir Cámara</button>
-  <button style="background:#22c55e; color:white;" onclick="capture()">📸 Capturar</button>
-  <button style="background:#f59e0b;" onclick="exportExcel()">⬇️ Exportar Excel</button>
+<div class="btn-container">
+  <button class="btn-cam" onclick="startCamera()">🎥 Cámara</button>
+  <button class="btn-cap" onclick="capture()">📸 Capturar</button>
+  <button class="btn-exc" onclick="exportExcel()">⬇️ Excel</button>
+  <button class="btn-del" onclick="clearData()">🗑️ Borrar</button>
 </div>
 
-<div id="status">Esperando...</div>
-<ul id="list" style="text-align:left;"></ul>
+<div id="status">Presiona "Cámara" para empezar</div>
+<ul id="list"></ul>
 
 <script>
 let video = document.getElementById("video");
@@ -32,28 +43,49 @@ let data = JSON.parse(localStorage.getItem("cromos") || "{}");
 render();
 
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  video.srcObject = stream;
-  document.getElementById("status").innerText = "Cámara lista.";
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    video.srcObject = stream;
+    document.getElementById("status").innerText = "Cámara lista. Enfoca el código superior derecho.";
+  } catch (e) {
+    document.getElementById("status").innerText = "Error: Cámara no disponible.";
+  }
 }
 
 async function capture() {
-  document.getElementById("status").innerText = "Procesando...";
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  if (!video.srcObject) return alert("Primero abre la cámara");
+  const status = document.getElementById("status");
+  status.innerText = "Procesando...";
 
-  Tesseract.recognize(canvas, "eng").then(result => {
-    const match = result.data.text.match(/[A-Z]{3}\s?\d{1,3}/);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Ajuste de coordenadas para el área del código (esquina superior derecha)
+  // Ajustamos para recortar exactamente el "USA 1" o "AUS 6"
+  const sourceWidth = video.videoWidth;
+  const sourceHeight = video.videoHeight;
+  const cropW = sourceWidth * 0.4;
+  const cropH = sourceHeight * 0.2;
+  const cropX = sourceWidth * 0.6;
+  const cropY = 0;
+
+  canvas.width = cropW;
+  canvas.height = cropH;
+  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+  Tesseract.recognize(canvas, "eng", { tessedit_pageseg_mode: 7 }).then(result => {
+    const text = result.data.text.trim();
+    // Filtro estricto: 3 letras, espacio, 1 a 3 números
+    const match = text.match(/[A-Z]{3}\s?\d{1,3}/);
+
     if (match) {
       const code = match[0].replace(/([A-Z]{3})(\d+)/, '$1 $2');
       data[code] = (data[code] || 0) + 1;
       localStorage.setItem("cromos", JSON.stringify(data));
       render();
-      document.getElementById("status").innerText = "✅ Detectado: " + code;
+      status.innerText = "✅ Detectado: " + code;
     } else {
-      document.getElementById("status").innerText = "❌ No detectado.";
+      status.innerText = "❌ No detectado. Intentó leer: " + (text || "nada");
     }
   });
 }
@@ -61,14 +93,27 @@ async function capture() {
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
-  Object.entries(data).forEach(([k,v]) => { list.innerHTML += `<li>${k} x${v}</li>`; });
+  Object.entries(data).forEach(([code, count]) => {
+    list.innerHTML += `<li><span>${code}</span> <b>x${count}</b></li>`;
+  });
+}
+
+function clearData() {
+  if(confirm("¿Borrar todo el inventario?")) {
+    data = {};
+    localStorage.removeItem("cromos");
+    render();
+    document.getElementById("status").innerText = "Datos borrados.";
+  }
 }
 
 function exportExcel() {
+  if (Object.keys(data).length === 0) return alert("No hay datos para exportar");
   const rows = [["Código", "Cantidad"], ...Object.entries(data)];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Cromos");
-  XLSX.writeFile(wb, "Coleccion.xlsx");
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "Cromos");
+  XLSX.writeFile(wb, "Inventario_Cromos.xlsx");
 }
 </script>
 </body>
