@@ -1,123 +1,48 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scanner Pro FIFA 2026</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Pro FIFA 2026 - Versión Corregida</title>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<style>
-body{
-    background:#0f172a;
-    color:white;
-    text-align:center;
-    font-family:sans-serif;
-    padding:10px;
-}
-
-#container{
-    position:relative;
-    display:inline-block;
-    width:100%;
-    max-width:400px;
-}
-
-#video{
-    width:100%;
-    border-radius:12px;
-    border:4px solid #38bdf8;
-    background:#000;
-}
-
-#frame{
-    position:absolute;
-    top:2%;
-    right:5%;
-    width:40%;
-    height:15%;
-    border:4px solid #ff0000;
-    border-radius:8px;
-    pointer-events:none;
-}
-
-.controls{
-    padding:10px;
-}
-
-button{
-    padding:12px;
-    margin:5px;
-    border:none;
-    border-radius:10px;
-    font-weight:bold;
-    cursor:pointer;
-    color:white;
-}
-
-.btn-camera{
-    background:#38bdf8;
-}
-
-.btn-capture{
-    background:#22c55e;
-}
-
-.btn-export{
-    background:#f59e0b;
-}
-
-ul{
-    list-style:none;
-    padding:0;
-    max-width:400px;
-    margin:20px auto;
-    text-align:left;
-}
-
-li{
-    background:#1e293b;
-    margin:5px 0;
-    padding:10px;
-    border-radius:6px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.btn-minus{
-    background:#ef4444;
-    padding:5px 10px;
-    border-radius:5px;
-}
-</style>
+    <style>
+        body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; padding: 10px; }
+        #container { position: relative; display: inline-block; width: 100%; max-width: 400px; }
+        #video { width: 100%; border-radius: 12px; border: 4px solid #38bdf8; background: #000; }
+        #frame { position: absolute; top: 2%; right: 5%; width: 40%; height: 15%; border: 4px solid #ff0000; border-radius: 8px; pointer-events: none; }
+        .controls { padding: 10px; }
+        button { padding: 12px; margin: 5px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-camera { background: #38bdf8; }
+        .btn-capture { background: #22c55e; }
+        .btn-export { background: #f59e0b; }
+        ul { list-style: none; padding: 0; max-width: 400px; margin: 20px auto; text-align: left; }
+        li { background: #1e293b; margin: 5px 0; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-minus { background: #ef4444; padding: 5px 10px; border-radius: 5px; }
+    </style>
 </head>
-
 <body>
 
-<h1>📸 Scanner Pro FIFA 2026</h1>
+    <h1>📸 Scanner Pro FIFA 2026</h1>
 
-<div id="container">
-    <video id="video" autoplay playsinline></video>
-    <div id="frame"></div>
-</div>
+    <div id="container">
+        <video id="video" autoplay playsinline></video>
+        <div id="frame"></div>
+    </div>
 
-<div class="controls">
-    <button class="btn-camera" onclick="startCamera()">🎥 Cámara</button>
-    <button class="btn-capture" onclick="capture()">📸 Capturar</button>
-    <button class="btn-export" onclick="exportExcel()">⬇️ Excel</button>
-</div>
+    <div class="controls">
+        <button class="btn-camera" onclick="startCamera()">🎥 Cámara</button>
+        <button class="btn-capture" onclick="capture()">📸 Capturar</button>
+        <button class="btn-export" onclick="exportExcel()">⬇️ Excel</button>
+    </div>
 
-<div id="status">
-    Encuadra el código dentro del recuadro rojo.
-</div>
+    <div id="status">Encuadra el código en el recuadro rojo.</div>
+    <ul id="list"></ul>
 
-<ul id="list"></ul>
-
-<script>
-
-const LISTADO_OFICIAL = [
+    <script>
+        const LISTADO_OFICIAL = [
     "FWC 1", "FWC 2", "FWC 3", "FWC 4", "FWC 5", "FWC 6", "FWC 7", "FWC 8", "FWC 9", "FWC 10", "FWC 11", "FWC 12", "FWC 13", "FWC 14", "FWC 15", "FWC 16", "FWC 17", "FWC 18", "FWC 19",
     "MEX 1", "MEX 2", "MEX 3", "MEX 4", "MEX 5", "MEX 6", "MEX 7", "MEX 8", "MEX 9", "MEX 10", "MEX 11", "MEX 12", "MEX 13", "MEX 14", "MEX 15", "MEX 16", "MEX 17", "MEX 18", "MEX 19", "MEX 20",
     "RSA 1", "RSA 2", "RSA 3", "RSA 4", "RSA 5", "RSA 6", "RSA 7", "RSA 8", "RSA 9", "RSA 10", "RSA 11", "RSA 12", "RSA 13", "RSA 14", "RSA 15", "RSA 16", "RSA 17", "RSA 18", "RSA 19", "RSA 20",
@@ -170,310 +95,92 @@ const LISTADO_OFICIAL = [
 ];
 
 
-const video = document.getElementById("video");
+        const video = document.getElementById("video");
+        let data = JSON.parse(localStorage.getItem("cromos") || "{}");
+        render();
 
-let data = JSON.parse(
-    localStorage.getItem("cromos") || "{}"
-);
-
-render();
-
-async function startCamera(){
-
-    try{
-
-        const stream =
-            await navigator.mediaDevices.getUserMedia({
-                video:{
-                    facingMode:{
-                        ideal:"environment"
-                    }
-                }
-            });
-
-        video.srcObject = stream;
-
-        const track =
-            stream.getVideoTracks()[0];
-
-        if(track.getCapabilities){
-
-            const capabilities =
-                track.getCapabilities();
-
-            if(capabilities.zoom){
-
-                try{
-
-                    await track.applyConstraints({
-                        advanced:[
-                            {
-                                zoom:4
-                            }
-                        ]
-                    });
-
-                }catch(e){
-                    console.log("Zoom no soportado");
-                }
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+            } catch (err) {
+                document.getElementById("status").innerText = "❌ Error: " + err.message;
             }
         }
 
-    }catch(err){
+        async function capture() {
+            const status = document.getElementById("status");
+            status.innerText = "🔍 Procesando...";
 
-        document.getElementById("status").innerText =
-            "❌ Error al abrir la cámara";
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0);
 
-        console.error(err);
-    }
-}
+            // Coordenadas de tu cromo
+            const w = video.videoWidth * 0.22;
+            const h = video.videoHeight * 0.07;
+            const x = video.videoWidth * 0.73;
+            const y = video.videoHeight * 0.015;
 
-async function capture(){
+            const crop = document.createElement("canvas");
+            crop.width = w * 4;
+            crop.height = h * 4;
+            const cropCtx = crop.getContext("2d");
 
-    const status =
-        document.getElementById("status");
+            // FILTRO MEJORADO: Invertimos color (para blanco sobre gris) y ajustamos contraste
+            cropCtx.filter = "invert(100%) grayscale(100%) contrast(250%) brightness(140%)";
+            cropCtx.drawImage(canvas, x, y, w, h, 0, 0, crop.width, crop.height);
 
-    status.innerText =
-        "🔍 Procesando...";
+            try {
+                const result = await Tesseract.recognize(crop, "eng", {
+                    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
+                    tessedit_pageseg_mode: '7'
+                });
 
-    const canvas =
-        document.createElement("canvas");
+                let raw = result.data.text.toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+                console.log("OCR Detectado:", raw);
 
-    canvas.width =
-        video.videoWidth;
+                let match = LISTADO_OFICIAL.find(code => raw.includes(code.replace(" ", "")));
 
-    canvas.height =
-        video.videoHeight;
-
-    const ctx =
-        canvas.getContext("2d");
-
-    ctx.drawImage(
-        video,
-        0,
-        0
-    );
-
-   const w = video.videoWidth * 0.22;
-const h = video.videoHeight * 0.07;
-const x = video.videoWidth * 0.73;
-const y = video.videoHeight * 0.015;
-
-    const crop =
-        document.createElement("canvas");
-
-    crop.width =
-        w * 8;
-
-    crop.height =
-        h * 8;
-
-    const cropCtx =
-        crop.getContext("2d");
-
-    cropCtx.filter =
-"grayscale(100%) contrast(450%) brightness(180%)";
-
-    cropCtx.drawImage(
-        canvas,
-        x,
-        y,
-        w,
-        h,
-        0,
-        0,
-        crop.width,
-        crop.height
-    );
-
-    try{
-
-        const result =
-            await Tesseract.recognize(
-                crop,
-                "eng",
-                {
-                    tessedit_char_whitelist:
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+                if (match) {
+                    data[match] = (data[match] || 0) + 1;
+                    saveAndRender();
+                    status.innerText = "✅ Detectado: " + match;
+                    if (navigator.vibrate) navigator.vibrate([100]);
+                } else {
+                    status.innerText = "❌ No detectado: " + raw;
                 }
-            );
-
-        let raw =
-            result.data.text
-            .toUpperCase()
-            .replace(/\n/g," ")
-            .replace(/[^A-Z0-9 ]/g," ")
-            .replace(/\s+/g," ")
-            .trim();
-
-       raw = raw
-.replace(/O/g,"0")
-.replace(/I/g,"1")
-.replace(/L/g,"1")
-.replace(/S/g,"5")
-.replace(/B/g,"8")
-.replace(/FWCI/g,"FWC 1")
-.replace(/FWCL/g,"FWC 1")
-.replace(/FWCO/g,"FWC 0")
-.replace(/FWC-/g,"FWC ")
-.replace(/FWC([0-9])/g,"FWC $1");
-
-        console.log("OCR:",raw);
-
-        let match =
-LISTADO_OFICIAL.find(code =>
-    raw.includes(code)
-);
-
-if(!match){
-
-    const limpioOCR =
-        raw.replace(/\s+/g,"");
-
-    match =
-        LISTADO_OFICIAL.find(code =>
-            limpioOCR.includes(
-                code.replace(/\s+/g,"")
-            )
-        );
-}
-
-        if(!match){
-
-            let bestScore = 0;
-
-            LISTADO_OFICIAL.forEach(code => {
-
-                let score = 0;
-
-                for(
-                    let i=0;
-                    i<Math.min(code.length,raw.length);
-                    i++
-                ){
-                    if(code[i]===raw[i]){
-                        score++;
-                    }
-                }
-
-                if(score > bestScore){
-                    bestScore = score;
-                    match = code;
-                }
-
-            });
-
-            if(bestScore < 4){
-                match = null;
+            } catch (err) {
+                status.innerText = "⚠️ Error OCR";
             }
         }
 
-        if(match){
+        function saveAndRender() {
+            localStorage.setItem("cromos", JSON.stringify(data));
+            render();
+        }
 
-            data[match] =
-                (data[match] || 0) + 1;
+        function render() {
+            const list = document.getElementById("list");
+            list.innerHTML = "";
+            Object.entries(data).sort().forEach(([code, count]) => {
+                list.innerHTML += `<li>${code} <b>x${count}</b> <button class="btn-minus" onclick="removeOne('${code}')">-</button></li>`;
+            });
+        }
 
+        function removeOne(code) {
+            if (data[code] > 1) data[code]--; else delete data[code];
             saveAndRender();
-
-            status.innerText =
-                "✅ Detectado: " +
-                match +
-                " (" +
-                Math.round(result.data.confidence) +
-                "%)";
-
-            if(navigator.vibrate){
-                navigator.vibrate([100,50,100]);
-            }
-
-        }else{
-
-            status.innerText =
-                "❌ No detectado: " +
-                raw +
-                " (" +
-                Math.round(result.data.confidence) +
-                "%)";
         }
 
-    }catch(err){
-
-        console.error(err);
-
-        status.innerText =
-            "⚠️ Error OCR";
-    }
-}
-
-function saveAndRender(){
-
-    localStorage.setItem(
-        "cromos",
-        JSON.stringify(data)
-    );
-
-    render();
-}
-
-function render(){
-
-    const list =
-        document.getElementById("list");
-
-    list.innerHTML = "";
-
-    Object.entries(data)
-    .sort()
-    .forEach(([code,count])=>{
-
-        list.innerHTML += `
-        <li>
-            ${code}
-            <b>x${count}</b>
-            <button
-                class="btn-minus"
-                onclick="removeOne('${code}')">
-                -
-            </button>
-        </li>`;
-    });
-}
-
-function removeOne(code){
-
-    if(data[code] > 1){
-        data[code]--;
-    }else{
-        delete data[code];
-    }
-
-    saveAndRender();
-}
-
-function exportExcel(){
-
-    const wb =
-        XLSX.utils.book_new();
-
-    const ws =
-        XLSX.utils.aoa_to_sheet([
-            ["Código","Cantidad"],
-            ...Object.entries(data)
-        ]);
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        "Cromos"
-    );
-
-    XLSX.writeFile(
-        wb,
-        "Inventario_FIFA.xlsx"
-    );
-}
-
-</script>
-
+        function exportExcel() {
+            const ws = XLSX.utils.aoa_to_sheet([["Código", "Cantidad"], ...Object.entries(data)]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Cromos");
+            XLSX.writeFile(wb, "Inventario_FIFA.xlsx");
+        }
+    </script>
 </body>
 </html>
