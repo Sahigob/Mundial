@@ -2,68 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner FIFA 2026</title>
+    <title>OCR en Cámara</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        body { margin: 0; background: #111; color: white; font-family: sans-serif; }
-        #video { width: 100vw; height: 100vh; object-fit: cover; }
-        #rectangulo { position: absolute; top: 5%; right: 5%; width: 35%; height: 10%; border: 4px solid yellow; box-sizing: border-box; pointer-events: none; }
-        #debug { position: absolute; top: 15%; right: 5%; width: 100px; height: 30px; border: 1px solid white; background: black; }
-        #lista { position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; max-height: 30vh; overflow-y: auto; }
+        #container { position: relative; width: 100%; max-width: 500px; }
+        #video { width: 100%; border-radius: 8px; }
+        #overlay {
+            position: absolute;
+            top: 25%; left: 25%;
+            width: 50%; height: 20%;
+            border: 3px solid red;
+            pointer-events: none; /* Para que puedas hacer clic detrás */
+        }
     </style>
 </head>
 <body>
 
-    <video id="video" autoplay playsinline></video>
-    <div id="rectangulo"></div>
-    <canvas id="debug"></canvas>
-    <div id="lista">Alinea el código en el recuadro amarillo...</div>
+    <div id="container">
+        <video id="video" autoplay playsinline></video>
+        <div id="overlay"></div>
+    </div>
+    <button onclick="capturar()">Escanear Rectángulo</button>
+    <ul id="listaResultados"></ul>
 
-<script>
-    const video = document.getElementById('video');
-    const lista = document.getElementById('lista');
-    const debugCanvas = document.getElementById('debug');
-    let inventario = {};
+    <script>
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const lista = document.getElementById('listaResultados');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(stream => { video.srcObject = stream; })
-        .catch(err => alert("Error de cámara: " + err));
+        // Iniciar cámara
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => { video.srcObject = stream; });
 
-    setInterval(async () => {
-        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-        const canvas = document.createElement("canvas");
-        const w = video.videoWidth * 0.35;
-        const h = video.videoHeight * 0.10;
-        const x = video.videoWidth * 0.60;
-        const y = video.videoHeight * 0.05;
-
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, x, y, w, h, 0, 0, w, h);
-
-        // Mostrar lo que ve en el debug
-        debugCanvas.getContext("2d").drawImage(canvas, 0, 0, 100, 30);
-
-        Tesseract.recognize(canvas, 'eng', {
-            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-        }).then(({ data: { text } }) => {
-            const raw = text.replace(/[^A-Z0-9]/g, '');
-            const match = raw.match(/([A-Z]{3})(\d+)/);
+        async function capturar() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
             
-            if (match) {
-                const codigo = match[0];
-                if (!inventario[codigo]) inventario[codigo] = 0;
-                inventario[codigo]++;
-                
-                lista.innerHTML = `<strong>Detectado: ${codigo}</strong><br>Total escaneados: ${Object.keys(inventario).length}<br>Último: ${codigo}`;
-                // Feedback visual breve
-                document.getElementById('rectangulo').style.borderColor = '#22c55e';
-                setTimeout(() => document.getElementById('rectangulo').style.borderColor = 'yellow', 500);
+            // Ajustar proporciones del área delimitada
+            const rect = overlay.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            context.drawImage(video, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
+            
+            // OCR
+            const { data: { text } } = await Tesseract.recognize(canvas.toDataURL(), 'spa');
+            
+            // Agregar a lista
+            if (text.trim()) {
+                const li = document.createElement('li');
+                li.textContent = text.trim();
+                lista.appendChild(li);
             }
-        });
-    }, 2000);
-</script>
+        }
+    </script>
 </body>
 </html>
