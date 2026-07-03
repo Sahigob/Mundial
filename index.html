@@ -1,66 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scanner FIFA 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        body { margin: 0; background: black; overflow: hidden; }
+        body { margin: 0; background: #111; color: white; font-family: sans-serif; }
         #video { width: 100vw; height: 100vh; object-fit: cover; }
-        #rectangulo {
-            position: absolute;
-            top: 5%; right: 5%;
-            width: 35%; height: 10%;
-            border: 5px solid yellow;
-            box-shadow: 0 0 20px yellow;
-        }
-        #lista { position: absolute; bottom: 20px; left: 20px; color: white; background: rgba(0,0,0,0.7); padding: 10px; max-height: 200px; overflow-y: auto; }
+        #rectangulo { position: absolute; top: 5%; right: 5%; width: 35%; height: 10%; border: 4px solid yellow; box-sizing: border-box; pointer-events: none; }
+        #debug { position: absolute; top: 15%; right: 5%; width: 100px; height: 30px; border: 1px solid white; background: black; }
+        #lista { position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; max-height: 30vh; overflow-y: auto; }
     </style>
 </head>
 <body>
 
     <video id="video" autoplay playsinline></video>
     <div id="rectangulo"></div>
-    <div id="lista">Escaneando...</div>
+    <canvas id="debug"></canvas>
+    <div id="lista">Alinea el código en el recuadro amarillo...</div>
 
 <script>
     const video = document.getElementById('video');
     const lista = document.getElementById('lista');
+    const debugCanvas = document.getElementById('debug');
     let inventario = {};
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-        .then(stream => { video.srcObject = stream; });
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => alert("Error de cámara: " + err));
 
-    // Escaneo automático cada 2 segundos
     setInterval(async () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
+        if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-        // Recorte preciso: Esquina superior derecha
-        const x = video.videoWidth * 0.60;
-        const y = video.videoHeight * 0.05;
+        const canvas = document.createElement("canvas");
         const w = video.videoWidth * 0.35;
         const h = video.videoHeight * 0.10;
+        const x = video.videoWidth * 0.60;
+        const y = video.videoHeight * 0.05;
 
-        Tesseract.recognize(canvas, 'eng', { logger: () => {} })
-            .then(({ data: { text } }) => {
-                const lectura = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                // Buscar patrón: 3 letras + números (ej: FWC01, MEX15)
-                const match = lectura.match(/([A-Z]{3})(\d+)/);
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, x, y, w, h, 0, 0, w, h);
+
+        // Mostrar lo que ve en el debug
+        debugCanvas.getContext("2d").drawImage(canvas, 0, 0, 100, 30);
+
+        Tesseract.recognize(canvas, 'eng', {
+            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+        }).then(({ data: { text } }) => {
+            const raw = text.replace(/[^A-Z0-9]/g, '');
+            const match = raw.match(/([A-Z]{3})(\d+)/);
+            
+            if (match) {
+                const codigo = match[0];
+                if (!inventario[codigo]) inventario[codigo] = 0;
+                inventario[codigo]++;
                 
-                if (match) {
-                    const codigo = match[0];
-                    inventario[codigo] = (inventario[codigo] || 0) + 1;
-                    actualizarUI(codigo);
-                }
-            });
+                lista.innerHTML = `<strong>Detectado: ${codigo}</strong><br>Total escaneados: ${Object.keys(inventario).length}<br>Último: ${codigo}`;
+                // Feedback visual breve
+                document.getElementById('rectangulo').style.borderColor = '#22c55e';
+                setTimeout(() => document.getElementById('rectangulo').style.borderColor = 'yellow', 500);
+            }
+        });
     }, 2000);
-
-    function actualizarUI(ultimo) {
-        lista.innerHTML = `Detectado: ${ultimo}<br>Total: ${Object.keys(inventario).length} únicos`;
-    }
 </script>
 </body>
 </html>
