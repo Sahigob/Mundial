@@ -2,57 +2,103 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>OCR en Cámara</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner OCR con Zoom</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        #container { position: relative; width: 100%; max-width: 500px; }
-        #video { width: 100%; border-radius: 8px; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        #container { position: relative; width: 100%; max-width: 400px; margin: 0 auto; }
+        #video { width: 100%; border-radius: 8px; background: #000; }
         #overlay {
             position: absolute;
-            top: 25%; left: 25%;
-            width: 50%; height: 20%;
-            border: 3px solid red;
-            pointer-events: none; /* Para que puedas hacer clic detrás */
+            top: 30%; left: 10%;
+            width: 80%; height: 40%;
+            border: 3px solid #00ff00;
+            pointer-events: none;
+            box-sizing: border-box;
         }
+        .controls { margin-top: 20px; }
+        #zoomSlider { width: 80%; }
+        ul { text-align: left; max-width: 400px; margin: 20px auto; }
     </style>
 </head>
 <body>
 
+    <h3>Scanner OCR</h3>
+    
     <div id="container">
         <video id="video" autoplay playsinline></video>
         <div id="overlay"></div>
     </div>
-    <button onclick="capturar()">Escanear Rectángulo</button>
+
+    <div class="controls">
+        <label>Zoom:</label><br>
+        <input type="range" id="zoomSlider" min="1" max="5" step="0.1" value="1"><br><br>
+        <button onclick="capturar()">Escanear Rectángulo</button>
+    </div>
+
     <ul id="listaResultados"></ul>
 
     <script>
         const video = document.getElementById('video');
         const overlay = document.getElementById('overlay');
+        const slider = document.getElementById('zoomSlider');
         const lista = document.getElementById('listaResultados');
+        let videoTrack;
 
-        // Iniciar cámara
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => { video.srcObject = stream; });
+        // Iniciar cámara trasera
+        navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: { exact: "environment" } } 
+        })
+        .then(stream => {
+            video.srcObject = stream;
+            videoTrack = stream.getVideoTracks()[0];
+        })
+        .catch(err => alert("Error al acceder a la cámara: " + err));
 
+        // Lógica de Zoom
+        slider.addEventListener('input', async () => {
+            if (videoTrack && videoTrack.getCapabilities().zoom) {
+                await videoTrack.applyConstraints({
+                    advanced: [{ zoom: parseFloat(slider.value) }]
+                });
+            }
+        });
+
+        // Lógica de OCR
         async function capturar() {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             
-            // Ajustar proporciones del área delimitada
-            const rect = overlay.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            // Obtener coordenadas del recuadro rojo
+            const videoRect = video.getBoundingClientRect();
+            const overlayRect = overlay.getBoundingClientRect();
 
-            context.drawImage(video, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
+            // Calcular escala (por si el video no ocupa el 100% del tamaño real)
+            const scaleX = video.videoWidth / videoRect.width;
+            const scaleY = video.videoHeight / videoRect.height;
+
+            canvas.width = overlayRect.width;
+            canvas.height = overlayRect.height;
+
+            // Recortar lo que hay dentro del recuadro
+            context.drawImage(video, 
+                (overlayRect.left - videoRect.left) * scaleX, 
+                (overlayRect.top - videoRect.top) * scaleY, 
+                overlayRect.width * scaleX, 
+                overlayRect.height * scaleY, 
+                0, 0, canvas.width, canvas.height
+            );
             
-            // OCR
+            // Procesar con Tesseract
             const { data: { text } } = await Tesseract.recognize(canvas.toDataURL(), 'spa');
             
-            // Agregar a lista
             if (text.trim()) {
                 const li = document.createElement('li');
                 li.textContent = text.trim();
                 lista.appendChild(li);
+            } else {
+                alert("No se detectó texto.");
             }
         }
     </script>
