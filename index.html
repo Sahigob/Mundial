@@ -1,140 +1,66 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scanner Pro FIFA 2026 - Esquina Superior Derecha</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; padding: 10px; margin: 0; }
-    #container { position: relative; display: inline-block; width: 100%; max-width: 500px; }
-    #video { width: 100%; border-radius: 12px; border: 4px solid #38bdf8; background: #000; display: block; }
-    /* Recuadro de escaneo ajustado a la esquina superior derecha */
-    #frame { 
-      position: absolute; 
-      top: 5%; right: 5%; 
-      width: 35%; height: 10%; 
-      border: 4px solid #ff0000; 
-      pointer-events: none; 
-      border-radius: 8px; 
-      box-shadow: 0 0 10px rgba(255,0,0,0.5);
-    }
-    .controls { padding: 15px; }
-    button { padding: 15px 20px; margin: 5px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
-    .btn-cam { background: #38bdf8; }
-    .btn-cap { background: #22c55e; }
-    .btn-excel { background: #f59e0b; }
-    ul { list-style: none; padding: 0; max-width: 500px; margin: 20px auto; text-align: left; }
-    li { background: #1e293b; margin: 5px 0; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-mod { padding: 5px 12px; font-size: 14px; }
-    #status { font-weight: bold; color: #38bdf8; margin: 10px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Scanner FIFA 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        body { margin: 0; background: black; overflow: hidden; }
+        #video { width: 100vw; height: 100vh; object-fit: cover; }
+        #rectangulo {
+            position: absolute;
+            top: 5%; right: 5%;
+            width: 35%; height: 10%;
+            border: 5px solid yellow;
+            box-shadow: 0 0 20px yellow;
+        }
+        #lista { position: absolute; bottom: 20px; left: 20px; color: white; background: rgba(0,0,0,0.7); padding: 10px; max-height: 200px; overflow-y: auto; }
+    </style>
 </head>
 <body>
 
-<h1>📸 Scanner Pro FIFA</h1>
-<div id="container">
-  <video id="video" autoplay playsinline></video>
-  <div id="frame"></div>
-</div>
-
-<div class="controls">
-  <button class="btn-cam" onclick="startCamera()">🎥 Cámara</button>
-  <button class="btn-cap" onclick="capture()">📸 Capturar Código</button>
-  <button class="btn-excel" onclick="exportExcel()">⬇️ Excel</button>
-</div>
-
-<div id="status">Encuadra el código (esquina superior derecha) en el recuadro rojo.</div>
-<ul id="list"></ul>
+    <video id="video" autoplay playsinline></video>
+    <div id="rectangulo"></div>
+    <div id="lista">Escaneando...</div>
 
 <script>
-let video = document.getElementById("video");
-let data = JSON.parse(localStorage.getItem("cromos") || "{}");
+    const video = document.getElementById('video');
+    const lista = document.getElementById('lista');
+    let inventario = {};
 
-// Listado de prefijos válidos para mejorar la precisión del OCR
-const PREFIXES = ["FWC", "MEX", "RSA", "KOR", "CZE", "CAN", "BIH", "QAT", "SUI", "BRA", "MAR", "HAI", "SCO", "USA", "PAR", "AUS", "TUR", "GER", "CUW", "CIV", "ECU", "NED", "JPN", "SWE", "TUN", "BEL", "EGY", "IRN", "NZL", "ESP", "CPV", "KSA", "URU", "FRA", "SEN", "IRQ", "NOR", "ARG", "ALG", "AUT", "JOR", "POR", "COD", "UZB", "COL", "ENG", "CRO", "GHA", "PAN"];
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => { video.srcObject = stream; });
 
-render();
+    // Escaneo automático cada 2 segundos
+    setInterval(async () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
 
-async function startCamera() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    video.srcObject = stream;
-  } catch (err) { alert("Error al acceder a la cámara: " + err); }
-}
+        // Recorte preciso: Esquina superior derecha
+        const x = video.videoWidth * 0.60;
+        const y = video.videoHeight * 0.05;
+        const w = video.videoWidth * 0.35;
+        const h = video.videoHeight * 0.10;
 
-async function capture() {
-  const status = document.getElementById("status");
-  status.innerText = "Analizando...";
-  
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0);
+        Tesseract.recognize(canvas, 'eng', { logger: () => {} })
+            .then(({ data: { text } }) => {
+                const lectura = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                // Buscar patrón: 3 letras + números (ej: FWC01, MEX15)
+                const match = lectura.match(/([A-Z]{3})(\d+)/);
+                
+                if (match) {
+                    const codigo = match[0];
+                    inventario[codigo] = (inventario[codigo] || 0) + 1;
+                    actualizarUI(codigo);
+                }
+            });
+    }, 2000);
 
-  // Recorte ajustado para la esquina superior derecha (35% ancho, 10% alto)
-  const w = video.videoWidth * 0.35;
-  const h = video.videoHeight * 0.10;
-  const x = video.videoWidth * 0.60; 
-  const y = video.videoHeight * 0.05;
-
-  const croppedCanvas = document.createElement("canvas");
-  croppedCanvas.width = w * 2;
-  croppedCanvas.height = h * 2;
-  const cCtx = croppedCanvas.getContext("2d");
-  cCtx.scale(2, 2);
-  cCtx.drawImage(canvas, x, y, w, h, 0, 0, w, h);
-  
-  // Procesamiento para mejorar contraste
-  cCtx.filter = 'grayscale(1) contrast(5) brightness(1.2)';
-  cCtx.drawImage(croppedCanvas, 0, 0);
-
-  Tesseract.recognize(croppedCanvas, "eng").then(res => {
-    let raw = res.data.text.trim().toUpperCase()
-                .replace(/[^A-Z0-9\s]/g, '')
-                .replace(/O/g, '0').replace(/I/g, '1');
-    
-    const match = PREFIXES.find(prefix => raw.includes(prefix));
-    const numberMatch = raw.match(/\d+/);
-    
-    if (match && numberMatch) {
-      const code = `${match} ${numberMatch[0]}`;
-      data[code] = (data[code] || 0) + 1;
-      saveAndRender();
-      status.innerText = "✅ Detectado: " + code;
-      if (window.navigator.vibrate) window.navigator.vibrate(200);
-    } else {
-      status.innerText = "❌ No detectado. Ajusta el cromo.";
+    function actualizarUI(ultimo) {
+        lista.innerHTML = `Detectado: ${ultimo}<br>Total: ${Object.keys(inventario).length} únicos`;
     }
-  });
-}
-
-function saveAndRender() { localStorage.setItem("cromos", JSON.stringify(data)); render(); }
-
-function render() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  Object.keys(data).sort().forEach(code => {
-    list.innerHTML += `<li>${code} <b>x${data[code]}</b> 
-        <div>
-            <button class="btn-mod" style="background:#22c55e" onclick="addOne('${code}')">+</button>
-            <button class="btn-mod" style="background:#ef4444" onclick="removeOne('${code}')">-</button>
-        </div>
-    </li>`;
-  });
-}
-
-function addOne(code) { data[code]++; saveAndRender(); }
-function removeOne(code) { if (data[code] > 1) data[code] -= 1; else delete data[code]; saveAndRender(); }
-
-function exportExcel() {
-  const wb = XLSX.utils.book_new();
-  const rows = [["Código", "Cantidad"], ...Object.entries(data)];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Cromos");
-  XLSX.writeFile(wb, "Mi_Coleccion_FIFA_2026.xlsx");
-}
 </script>
 </body>
 </html>
