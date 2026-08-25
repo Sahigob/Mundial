@@ -1,290 +1,816 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="GeoFichaje">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<meta
+  name="apple-mobile-web-app-capable"
+  content="yes"
+>
+
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="default"
+>
+
+<meta
+  name="apple-mobile-web-app-title"
+  content="GeoFichaje"
+>
 
 <title>GeoFichaje</title>
 
+
 <style>
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
 :root{
+
   --bg:#f3f7f6;
+
   --card:#ffffff;
+
   --text:#1f2937;
+
   --muted:#6b7280;
+
   --green:#16a34a;
+
   --red:#dc2626;
+
   --blue:#2563eb;
+
   --border:#dbe4e1;
+
+  --orange:#ea580c;
+
 }
+
+
+/* =========================================================
+   GENERAL
+========================================================= */
 
 *{
+
   box-sizing:border-box;
+
   -webkit-tap-highlight-color:transparent;
+
 }
+
 
 body{
+
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+
   background:var(--bg);
+
   color:var(--text);
+
 }
+
+
+/* =========================================================
+   CONTENEDOR
+========================================================= */
 
 .container{
+
   max-width:480px;
+
   margin:0 auto;
+
   padding:18px 16px 28px;
+
 }
+
 
 h1{
+
   margin:8px 0 2px;
+
   font-size:30px;
+
 }
+
 
 .sub{
+
   color:var(--muted);
+
   font-size:14px;
+
   margin-bottom:18px;
+
 }
+
+
+/* =========================================================
+   TARJETAS
+========================================================= */
 
 .card{
+
   background:var(--card);
+
   border-radius:18px;
+
   padding:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
+
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.06);
+
   margin-bottom:14px;
+
 }
+
+
+/* =========================================================
+   FILAS
+========================================================= */
 
 .row{
+
   display:flex;
+
   align-items:center;
+
   justify-content:space-between;
+
   gap:10px;
+
 }
+
+
+/* =========================================================
+   BADGES
+========================================================= */
 
 .badge{
+
   display:inline-block;
+
   padding:6px 10px;
+
   border-radius:999px;
+
   font-size:12px;
+
   font-weight:700;
+
 }
+
 
 .ok{
+
   background:#dcfce7;
+
   color:#166534;
+
 }
+
 
 .off{
+
   background:#fee2e2;
+
   color:#991b1b;
+
 }
+
 
 .info{
+
   background:#dbeafe;
+
   color:#1d4ed8;
+
 }
+
+
+/* =========================================================
+   BOTONES
+========================================================= */
 
 button{
+
   width:100%;
+
   border:none;
+
   border-radius:14px;
+
   padding:14px;
+
   font-size:16px;
+
   font-weight:700;
+
   cursor:pointer;
+
   -webkit-appearance:none;
+
 }
+
 
 button:disabled{
+
   opacity:.55;
+
   cursor:not-allowed;
+
 }
+
 
 .primary{
+
   background:var(--blue);
+
   color:white;
+
 }
+
 
 .danger{
+
   background:var(--red);
+
   color:white;
+
 }
+
 
 .secondary{
+
   background:#eef2ff;
+
   color:#3730a3;
+
 }
 
-.logout{
-  width:auto;
-  padding:8px 12px;
-  background:#f3f4f6;
-  color:#374151;
-  border-radius:10px;
-  font-size:13px;
+
+.export{
+
+  background:#15803d;
+
+  color:white;
+
 }
+
+
+.orange{
+
+  background:var(--orange);
+
+  color:white;
+
+}
+
+
+.logout{
+
+  width:auto;
+
+  padding:8px 12px;
+
+  background:#f3f4f6;
+
+  color:#374151;
+
+  border-radius:10px;
+
+  font-size:13px;
+
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
 
 input,
 select{
+
   width:100%;
+
   padding:12px;
+
   border-radius:12px;
+
   border:1px solid var(--border);
+
   margin-top:6px;
+
   margin-bottom:10px;
+
   font-size:15px;
+
 }
+
+
+input:focus{
+
+  outline:none;
+
+  border-color:var(--blue);
+
+}
+
+
+/* =========================================================
+   LABELS
+========================================================= */
 
 label{
+
   font-size:13px;
+
   color:var(--muted);
+
   font-weight:600;
+
 }
+
+
+/* =========================================================
+   TEXTOS
+========================================================= */
 
 .small{
+
   font-size:12px;
+
   color:var(--muted);
+
 }
+
+
+/* =========================================================
+   MENSAJES
+========================================================= */
 
 .error{
+
   color:#b91c1c;
+
   background:#fef2f2;
+
   border-radius:10px;
+
   padding:10px;
+
   font-size:13px;
+
   margin-top:10px;
+
 }
+
 
 .success{
+
   color:#166534;
+
   background:#f0fdf4;
+
   border-radius:10px;
+
   padding:10px;
+
   font-size:13px;
+
   margin-top:10px;
+
 }
+
+
+/* =========================================================
+   HISTORIAL
+========================================================= */
 
 .history-item{
+
   border-top:1px solid #edf2f0;
+
   padding:10px 0;
+
 }
+
 
 .history-item:first-child{
+
   border-top:none;
+
   padding-top:0;
+
 }
+
 
 .dot{
+
   width:10px;
+
   height:10px;
+
   border-radius:50%;
+
   background:var(--green);
+
   display:inline-block;
+
   margin-right:6px;
+
 }
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
 
 .footer{
+
   text-align:center;
+
   color:var(--muted);
+
   font-size:12px;
+
   margin-top:10px;
+
 }
+
+
+/* =========================================================
+   HIDDEN
+========================================================= */
 
 .hidden{
+
   display:none !important;
+
 }
+
+
+/* =========================================================
+   AUTH
+========================================================= */
 
 .auth-container{
+
   min-height:100vh;
+
   display:flex;
+
   align-items:center;
+
   justify-content:center;
+
   padding:20px;
+
 }
+
 
 .auth-card{
+
   width:100%;
+
   max-width:420px;
+
   background:white;
+
   border-radius:22px;
+
   padding:24px;
-  box-shadow:0 4px 20px rgba(0,0,0,.08);
+
+  box-shadow:
+    0 4px 20px rgba(0,0,0,.08);
+
 }
+
 
 .auth-title{
+
   text-align:center;
+
   font-size:30px;
+
   font-weight:800;
+
   margin-bottom:5px;
+
 }
+
 
 .auth-subtitle{
+
   text-align:center;
+
   color:var(--muted);
+
   font-size:14px;
+
   margin-bottom:22px;
+
 }
+
 
 .auth-switch{
+
   text-align:center;
+
   margin-top:15px;
+
   font-size:13px;
+
   color:var(--muted);
+
 }
+
 
 .link-button{
+
   background:none;
+
   color:var(--blue);
+
   padding:0;
+
   width:auto;
+
   font-size:13px;
+
 }
+
+
+/* =========================================================
+   USER BAR
+========================================================= */
 
 .user-bar{
+
   display:flex;
+
   align-items:center;
+
   justify-content:space-between;
+
   gap:10px;
+
   margin-bottom:12px;
+
 }
+
 
 .user-email{
+
   font-size:12px;
+
   color:var(--muted);
+
   overflow:hidden;
+
   text-overflow:ellipsis;
+
   white-space:nowrap;
+
 }
 
-.loading{
-  text-align:center;
-  color:var(--muted);
-  padding:30px 10px;
+
+/* =========================================================
+   EXPORTACIÓN
+========================================================= */
+
+.export-box{
+
+  background:#f0fdf4;
+
+  border:1px solid #bbf7d0;
+
+  border-radius:14px;
+
+  padding:14px;
+
+  margin-top:12px;
+
 }
+
+
+.export-title{
+
+  font-weight:700;
+
+  margin-bottom:4px;
+
+}
+
+
+.date-row{
+
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:10px;
+
+}
+
+
+.export-info{
+
+  margin-top:8px;
+
+  font-size:12px;
+
+  color:var(--muted);
+
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading{
+
+  text-align:center;
+
+  color:var(--muted);
+
+  padding:30px 10px;
+
+}
+
+
+/* =========================================================
+   SEPARADOR
+========================================================= */
+
+.separator{
+
+  height:1px;
+
+  background:#edf2f0;
+
+  margin:15px 0;
+
+}
+
+
+/* =========================================================
+   MODAL EXPORTACIÓN
+========================================================= */
+
+.modal-overlay{
+
+  position:fixed;
+
+  inset:0;
+
+  background:rgba(0,0,0,.45);
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  z-index:9999;
+
+  padding:0;
+
+}
+
+
+.modal{
+
+  background:white;
+
+  width:100%;
+
+  max-width:480px;
+
+  border-radius:
+    22px 22px 0 0;
+
+  padding:20px;
+
+  box-shadow:
+    0 -5px 30px rgba(0,0,0,.15);
+
+}
+
+
+.modal-title{
+
+  font-size:20px;
+
+  font-weight:800;
+
+  margin-bottom:4px;
+
+}
+
+
+.modal-subtitle{
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  margin-bottom:16px;
+
+}
+
+
+.modal-buttons{
+
+  display:flex;
+
+  gap:8px;
+
+}
+
+
+.modal-buttons button{
+
+  flex:1;
+
+}
+
+
+@media(
+  min-width:600px
+){
+
+  .modal-overlay{
+
+    align-items:center;
+
+    padding:20px;
+
+  }
+
+
+  .modal{
+
+    border-radius:22px;
+
+  }
+
+}
+
 </style>
+
 </head>
+
 
 <body>
 
-<!-- =========================
-     LOGIN / REGISTRO
-========================= -->
 
-<div id="authScreen" class="auth-container">
+<!-- =====================================================
+     LOGIN
+====================================================== -->
+
+<div
+  id="authScreen"
+  class="auth-container"
+>
 
   <div class="auth-card">
 
     <div class="auth-title">
+
       📍 GeoFichaje
+
     </div>
 
+
     <div class="auth-subtitle">
+
       Registro de jornada por localización
+
     </div>
+
+
+    <!-- LOGIN -->
 
     <div id="loginForm">
 
@@ -299,6 +825,7 @@ label{
         placeholder="tu@email.com"
       >
 
+
       <label>
         Contraseña
       </label>
@@ -310,13 +837,17 @@ label{
         placeholder="Contraseña"
       >
 
+
       <button
         id="loginBtn"
         class="primary"
         type="button"
       >
+
         Entrar
+
       </button>
+
 
       <div class="auth-switch">
 
@@ -327,7 +858,9 @@ label{
           class="link-button"
           type="button"
         >
+
           Crear cuenta
+
         </button>
 
       </div>
@@ -335,7 +868,12 @@ label{
     </div>
 
 
-    <div id="registerForm" class="hidden">
+    <!-- REGISTRO -->
+
+    <div
+      id="registerForm"
+      class="hidden"
+    >
 
       <label>
         Correo electrónico
@@ -348,6 +886,7 @@ label{
         placeholder="tu@email.com"
       >
 
+
       <label>
         Contraseña
       </label>
@@ -359,13 +898,17 @@ label{
         placeholder="Mínimo 6 caracteres"
       >
 
+
       <button
         id="registerBtn"
         class="primary"
         type="button"
       >
+
         Crear cuenta
+
       </button>
+
 
       <div class="auth-switch">
 
@@ -376,12 +919,15 @@ label{
           class="link-button"
           type="button"
         >
+
           Iniciar sesión
+
         </button>
 
       </div>
 
     </div>
+
 
     <div
       id="authMsg"
@@ -394,39 +940,59 @@ label{
 </div>
 
 
-<!-- =========================
-     APP
-========================= -->
 
-<div id="appScreen" class="hidden">
+<!-- =====================================================
+     APP
+====================================================== -->
+
+<div
+  id="appScreen"
+  class="hidden"
+>
 
   <div class="container">
+
+
+    <!-- USUARIO -->
 
     <div class="user-bar">
 
       <div class="user-email">
+
         <span id="userEmail"></span>
+
       </div>
+
 
       <button
         id="logoutBtn"
         class="logout"
         type="button"
       >
+
         Cerrar sesión
+
       </button>
 
     </div>
 
 
-    <h1>📍 GeoFichaje</h1>
+    <h1>
+      📍 GeoFichaje
+    </h1>
+
 
     <div class="sub">
+
       Registro de jornada por localización
+
     </div>
 
 
-    <!-- ESTADO -->
+
+    <!-- =================================================
+         ESTADO
+    ================================================== -->
 
     <div class="card">
 
@@ -436,11 +1002,14 @@ label{
           Estado
         </strong>
 
+
         <span
           id="statusBadge"
           class="badge off"
         >
+
           Fuera
+
         </span>
 
       </div>
@@ -452,11 +1021,17 @@ label{
           Centro detectado
         </div>
 
+
         <div
           id="currentSite"
-          style="font-size:20px;font-weight:700"
+          style="
+            font-size:20px;
+            font-weight:700
+          "
         >
+
           —
+
         </div>
 
       </div>
@@ -473,11 +1048,14 @@ label{
             Entrada
           </div>
 
+
           <div
             id="entryTime"
             style="font-weight:700"
           >
+
             --:--
+
           </div>
 
         </div>
@@ -489,11 +1067,14 @@ label{
             Tiempo
           </div>
 
+
           <div
             id="worked"
             style="font-weight:700"
           >
+
             0 h
+
           </div>
 
         </div>
@@ -503,11 +1084,14 @@ label{
 
       <div style="margin-top:14px">
 
+
         <button
           id="geoBtn"
           class="primary"
         >
+
           Activar localización
+
         </button>
 
 
@@ -524,7 +1108,9 @@ label{
             class="secondary"
             type="button"
           >
+
             Fichar entrada
+
           </button>
 
 
@@ -533,7 +1119,9 @@ label{
             class="danger"
             type="button"
           >
+
             Fichar salida
+
           </button>
 
         </div>
@@ -550,7 +1138,10 @@ label{
     </div>
 
 
-    <!-- CENTROS -->
+
+    <!-- =================================================
+         CENTROS
+    ================================================== -->
 
     <div class="card">
 
@@ -558,11 +1149,14 @@ label{
         Mis centros
       </strong>
 
+
       <div style="margin-top:12px">
+
 
         <label>
           Nombre
         </label>
+
 
         <input
           id="name"
@@ -573,6 +1167,7 @@ label{
         <label>
           Latitud
         </label>
+
 
         <input
           id="lat"
@@ -586,6 +1181,7 @@ label{
           Longitud
         </label>
 
+
         <input
           id="lon"
           type="number"
@@ -597,6 +1193,7 @@ label{
         <label>
           Radio (metros)
         </label>
+
 
         <input
           id="radius"
@@ -610,7 +1207,9 @@ label{
           class="secondary"
           type="button"
         >
+
           Usar mi ubicación actual
+
         </button>
 
 
@@ -622,7 +1221,9 @@ label{
           class="primary"
           type="button"
         >
+
           Guardar centro
+
         </button>
 
       </div>
@@ -637,15 +1238,20 @@ label{
     </div>
 
 
-    <!-- HISTORIAL -->
+
+    <!-- =================================================
+         HISTORIAL
+    ================================================== -->
 
     <div class="card">
+
 
       <div class="row">
 
         <strong>
           Historial
         </strong>
+
 
         <button
           id="clear"
@@ -658,7 +1264,9 @@ label{
             border-radius:10px
           "
         >
+
           Borrar
+
         </button>
 
       </div>
@@ -669,8 +1277,86 @@ label{
         style="margin-top:10px"
       ></div>
 
+
+      <!-- =================================================
+           EXPORTAR
+      ================================================== -->
+
+      <div class="export-box">
+
+        <div class="export-title">
+
+          📊 Exportar registros
+
+        </div>
+
+
+        <div class="small">
+
+          Selecciona el periodo que quieres descargar
+          en formato Excel.
+
+        </div>
+
+
+        <div
+          class="date-row"
+          style="margin-top:12px"
+        >
+
+          <div>
+
+            <label>
+              Desde
+            </label>
+
+            <input
+              id="exportFrom"
+              type="date"
+            >
+
+          </div>
+
+
+          <div>
+
+            <label>
+              Hasta
+            </label>
+
+            <input
+              id="exportTo"
+              type="date"
+            >
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="exportExcel"
+          class="export"
+          type="button"
+        >
+
+          📥 Descargar Excel
+
+        </button>
+
+
+        <div
+          id="exportMsg"
+          class="export-info"
+        ></div>
+
+      </div>
+
     </div>
 
+
+
+    <!-- FOOTER -->
 
     <div class="footer">
 
@@ -690,39 +1376,166 @@ label{
 </div>
 
 
+
+<!-- =====================================================
+     MODAL EXPORTACIÓN
+====================================================== -->
+
+<div
+  id="exportModal"
+  class="modal-overlay hidden"
+>
+
+  <div class="modal">
+
+    <div class="modal-title">
+
+      📊 Exportar registros
+
+    </div>
+
+
+    <div class="modal-subtitle">
+
+      Elige las fechas que quieres incluir.
+
+    </div>
+
+
+    <div class="date-row">
+
+      <div>
+
+        <label>
+          Desde
+        </label>
+
+        <input
+          id="modalFrom"
+          type="date"
+        >
+
+      </div>
+
+
+      <div>
+
+        <label>
+          Hasta
+        </label>
+
+        <input
+          id="modalTo"
+          type="date"
+        >
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="modalExportMsg"
+      class="small"
+      style="margin-bottom:12px"
+    ></div>
+
+
+    <div class="modal-buttons">
+
+      <button
+        id="cancelExport"
+        class="secondary"
+        type="button"
+      >
+
+        Cancelar
+
+      </button>
+
+
+      <button
+        id="confirmExport"
+        class="export"
+        type="button"
+      >
+
+        Descargar Excel
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
 <script type="module">
+
 
 /* =========================================================
    FIREBASE
 ========================================================= */
 
 import {
+
   initializeApp
-} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+} from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
 
 import {
+
   getAuth,
+
   onAuthStateChanged,
+
   signInWithEmailAndPassword,
+
   createUserWithEmailAndPassword,
+
   signOut
-} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+} from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
 
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  getDoc,
-  doc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  limit
-} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
+  getFirestore,
+
+  collection,
+
+  addDoc,
+
+  getDocs,
+
+  updateDoc,
+
+  deleteDoc,
+
+  doc,
+
+  query,
+
+  orderBy,
+
+  limit
+
+} from
+"https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+
+/* =========================================================
+   FIREBASE CONFIG
+========================================================= */
 
 const firebaseConfig = {
 
@@ -751,7 +1564,9 @@ const firebaseConfig = {
 
 
 const app =
-  initializeApp(firebaseConfig);
+  initializeApp(
+    firebaseConfig
+  );
 
 
 const auth =
@@ -762,60 +1577,89 @@ const db =
   getFirestore(app);
 
 
+
 /* =========================================================
    VARIABLES
 ========================================================= */
 
-let currentUser = null;
+let currentUser =
+  null;
 
-let sites = [];
 
-let logs = [];
+let sites =
+  [];
 
-let active = null;
 
-let watchId = null;
+let logs =
+  [];
 
-let timer = null;
+
+let active =
+  null;
+
+
+let watchId =
+  null;
+
+
+let timer =
+  null;
+
 
 
 /* =========================================================
-   HELPERS
+   HELPER $
 ========================================================= */
 
-const $ = id =>
-  document.getElementById(id);
+const $ =
+  id =>
+    document.getElementById(id);
 
+
+
+/* =========================================================
+   MOSTRAR / OCULTAR
+========================================================= */
 
 function show(element){
 
-  element.classList.remove("hidden");
+  element.classList
+    .remove("hidden");
 
 }
 
 
 function hide(element){
 
-  element.classList.add("hidden");
+  element.classList
+    .add("hidden");
 
 }
 
 
+
+/* =========================================================
+   MENSAJES AUTH
+========================================================= */
+
 function showAuthMessage(
   message,
-  type = "error"
+  type="error"
 ){
 
   const box =
     $("authMsg");
 
+
   box.textContent =
     message;
+
 
   box.className =
     type === "success"
       ? "success"
       : "error";
+
 
   show(box);
 
@@ -824,7 +1668,9 @@ function showAuthMessage(
 
 function clearAuthMessage(){
 
-  $("authMsg").textContent = "";
+  $("authMsg").textContent =
+    "";
+
 
   $("authMsg").className =
     "hidden";
@@ -832,16 +1678,25 @@ function clearAuthMessage(){
 }
 
 
+
+/* =========================================================
+   FORMATOS DE FECHA
+========================================================= */
+
 function formatTime(d){
 
   const x =
     new Date(d);
 
+
   return x.toLocaleTimeString(
     "es-ES",
     {
+
       hour:"2-digit",
+
       minute:"2-digit"
+
     }
   );
 
@@ -854,106 +1709,266 @@ function formatDate(d){
     .toLocaleDateString(
       "es-ES",
       {
+
         day:"2-digit",
+
         month:"2-digit",
+
         year:"numeric"
+
       }
     );
 
 }
 
 
+function formatDateForExcel(d){
+
+  const x =
+    new Date(d);
+
+
+  const day =
+    String(
+      x.getDate()
+    ).padStart(2,"0");
+
+
+  const month =
+    String(
+      x.getMonth()+1
+    ).padStart(2,"0");
+
+
+  const year =
+    x.getFullYear();
+
+
+  return `${day}/${month}/${year}`;
+
+}
+
+
+function formatDateTimeForExcel(d){
+
+  if(!d)
+    return "";
+
+
+  const x =
+    new Date(d);
+
+
+  const date =
+    formatDateForExcel(
+      d
+    );
+
+
+  const time =
+    x.toLocaleTimeString(
+      "es-ES",
+      {
+
+        hour:"2-digit",
+
+        minute:"2-digit",
+
+        second:"2-digit"
+
+      }
+    );
+
+
+  return `${date} ${time}`;
+
+}
+
+
+
+/* =========================================================
+   HORAS
+========================================================= */
+
 function hours(ms){
 
   if(ms < 0)
     ms = 0;
 
-  const m =
+
+  const minutes =
     Math.floor(
       ms / 60000
     );
 
+
   const h =
     Math.floor(
-      m / 60
+      minutes / 60
     );
 
+
   const mm =
-    m % 60;
+    minutes % 60;
+
 
   return `${h} h ${mm} min`;
 
 }
 
 
+function hoursDecimal(ms){
+
+  if(!ms || ms < 0)
+    return 0;
+
+
+  return Number(
+    (
+      ms /
+      3600000
+    ).toFixed(2)
+  );
+
+}
+
+
+
+/* =========================================================
+   DISTANCIA GPS
+========================================================= */
+
 function distance(
+
   lat1,
+
   lon1,
+
   lat2,
+
   lon2
+
 ){
 
   const R =
     6371000;
 
+
   const toRad =
-    x => x * Math.PI / 180;
+    x =>
+      x *
+      Math.PI /
+      180;
+
 
   const dLat =
     toRad(
-      lat2 - lat1
+      lat2-lat1
     );
+
 
   const dLon =
     toRad(
-      lon2 - lon1
+      lon2-lon1
     );
 
+
   const a =
-    Math.sin(dLat / 2) ** 2 +
+
+    Math.sin(
+      dLat/2
+    ) ** 2
+
+    +
 
     Math.cos(
       toRad(lat1)
-    ) *
+    )
+
+    *
 
     Math.cos(
       toRad(lat2)
-    ) *
+    )
 
-    Math.sin(dLon / 2) ** 2;
+    *
 
-  return 2 * R *
+    Math.sin(
+      dLon/2
+    ) ** 2;
+
+
+  return 2 *
+    R *
     Math.atan2(
+
       Math.sqrt(a),
-      Math.sqrt(1 - a)
+
+      Math.sqrt(
+        1-a
+      )
+
     );
 
 }
 
 
-function escapeHtml(value){
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+  value
+){
 
   return String(value)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 
 }
 
 
+
 /* =========================================================
-   FIRESTORE PATHS
+   COLECCIONES FIRESTORE
 ========================================================= */
 
 function userSitesCollection(){
 
   return collection(
+
     db,
+
     "users",
+
     currentUser.uid,
+
     "sites"
+
   );
 
 }
@@ -962,13 +1977,19 @@ function userSitesCollection(){
 function userLogsCollection(){
 
   return collection(
+
     db,
+
     "users",
+
     currentUser.uid,
+
     "logs"
+
   );
 
 }
+
 
 
 /* =========================================================
@@ -977,12 +1998,15 @@ function userLogsCollection(){
 
 async function loadSites(){
 
-  sites = [];
+  sites =
+    [];
+
 
   const snapshot =
     await getDocs(
       userSitesCollection()
     );
+
 
   snapshot.forEach(
     item => {
@@ -998,28 +2022,41 @@ async function loadSites(){
     }
   );
 
+
   renderSites();
 
 }
 
 
+
 /* =========================================================
-   CARGAR HISTORIAL
+   CARGAR LOGS
 ========================================================= */
 
 async function loadLogs(){
 
-  logs = [];
+  logs =
+    [];
+
 
   const q =
     query(
+
       userLogsCollection(),
-      orderBy("in","desc"),
-      limit(100)
+
+      orderBy(
+        "in",
+        "desc"
+      ),
+
+      limit(1000)
+
     );
+
 
   const snapshot =
     await getDocs(q);
+
 
   snapshot.forEach(
     item => {
@@ -1036,22 +2073,20 @@ async function loadLogs(){
   );
 
 
-  /*
-   * Buscamos si hay una jornada
-   * abierta.
-   */
-
   active =
     logs.find(
-      l => !l.out
+      l =>
+        !l.out
     ) || null;
 
 
   renderHistory();
 
+
   updateUI();
 
 }
+
 
 
 /* =========================================================
@@ -1062,7 +2097,8 @@ function renderSites(){
 
   if(!sites.length){
 
-    $("sitesList").innerHTML =
+    $("sitesList")
+      .innerHTML =
       "No hay centros guardados.";
 
     return;
@@ -1070,75 +2106,108 @@ function renderSites(){
   }
 
 
-  $("sitesList").innerHTML =
-    sites.map(
-      s => `
+  $("sitesList")
+    .innerHTML =
 
-        <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding:8px 0;
-            border-top:1px solid #edf2f0
-          "
-        >
+    sites
+      .map(
 
-          <div>
+        site => `
 
-            <strong>
-              ${escapeHtml(s.name)}
-            </strong>
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              padding:8px 0;
+              border-top:1px solid #edf2f0
+            "
+          >
 
-            <br>
+            <div>
 
-            ${s.radius} m
+              <strong>
+
+                ${escapeHtml(
+                  site.name
+                )}
+
+              </strong>
+
+              <br>
+
+              ${site.radius} m
+
+            </div>
+
+
+            <button
+
+              data-site-id="${escapeHtml(
+                site.id
+              )}"
+
+              class="delete-site"
+
+              style="
+                width:auto;
+                background:#fee2e2;
+                color:#991b1b;
+                padding:6px 10px;
+                border-radius:8px
+              "
+
+              type="button"
+
+            >
+
+              ✕
+
+            </button>
 
           </div>
 
+        `
 
-          <button
-            data-site-id="${escapeHtml(s.id)}"
-            class="delete-site"
-            style="
-              width:auto;
-              background:#fee2e2;
-              color:#991b1b;
-              padding:6px 10px;
-              border-radius:8px
-            "
-            type="button"
-          >
-            ✕
-          </button>
+      )
 
-        </div>
-
-      `
-    ).join("");
+      .join("");
 
 
   document
-    .querySelectorAll(".delete-site")
+
+    .querySelectorAll(
+      ".delete-site"
+    )
+
     .forEach(
+
       button => {
 
         button.onclick =
-          () => removeSite(
-            button.dataset.siteId
-          );
+          () => {
+
+            removeSite(
+              button.dataset.siteId
+            );
+
+          };
 
       }
+
     );
 
 }
+
 
 
 /* =========================================================
    BORRAR CENTRO
 ========================================================= */
 
-async function removeSite(siteId){
+async function removeSite(
+  siteId
+){
 
   if(!currentUser)
     return;
@@ -1148,38 +2217,61 @@ async function removeSite(siteId){
     !confirm(
       "¿Quieres borrar este centro?"
     )
-  )
+  ){
+
     return;
+
+  }
 
 
   try{
 
     await deleteDoc(
+
       doc(
+
         db,
+
         "users",
+
         currentUser.uid,
+
         "sites",
+
         siteId
+
       )
+
     );
 
 
     sites =
       sites.filter(
-        s => s.id !== siteId
+
+        site =>
+          site.id !==
+          siteId
+
       );
 
 
     renderSites();
 
+
     $("geoMsg").textContent =
       "Centro eliminado.";
+
+
+    $("geoMsg").className =
+      "success";
 
   }
   catch(error){
 
-    console.error(error);
+    console.error(
+      error
+    );
+
 
     alert(
       "No se pudo borrar el centro."
@@ -1190,6 +2282,7 @@ async function removeSite(siteId){
 }
 
 
+
 /* =========================================================
    RENDER HISTORIAL
 ========================================================= */
@@ -1198,49 +2291,84 @@ function renderHistory(){
 
   if(!logs.length){
 
-    $("history").innerHTML =
-      '<div class="small">Todavía no hay jornadas registradas.</div>';
+    $("history")
+      .innerHTML =
+
+      '<div class="small">' +
+      'Todavía no hay jornadas registradas.' +
+      '</div>';
 
     return;
 
   }
 
 
-  $("history").innerHTML =
+  $("history")
+    .innerHTML =
+
     logs
+
       .map(
-        l => {
+
+        log => {
 
           const total =
-            l.out
-              ? hours(
-                  new Date(l.out) -
-                  new Date(l.in)
+
+            log.out
+
+              ?
+
+              hours(
+
+                new Date(
+                  log.out
                 )
-              : "En curso";
+
+                -
+
+                new Date(
+                  log.in
+                )
+
+              )
+
+              :
+
+              "En curso";
 
 
           return `
 
             <div class="history-item">
 
+
               <div class="row">
+
 
                 <div>
 
                   <span class="dot"></span>
 
                   <strong>
-                    ${escapeHtml(l.site || "Centro")}
+
+                    ${escapeHtml(
+                      log.site ||
+                      "Centro"
+                    )}
+
                   </strong>
 
                 </div>
 
+
                 <div class="small">
 
-                  ${formatDate(l.in)}
+                  ${formatDate(
+                    log.in
+                  )}
 
                 </div>
+
 
               </div>
 
@@ -1252,82 +2380,125 @@ function renderHistory(){
 
                 <div>
 
-                  ${formatTime(l.in)}
+                  ${formatTime(
+                    log.in
+                  )}
 
                   →
 
                   ${
-                    l.out
-                      ? formatTime(l.out)
-                      : "..."
+                    log.out
+
+                      ?
+
+                      formatTime(
+                        log.out
+                      )
+
+                      :
+
+                      "..."
+
                   }
 
                 </div>
 
+
                 <strong>
+
                   ${total}
+
                 </strong>
 
               </div>
+
 
             </div>
 
           `;
 
         }
+
       )
+
       .join("");
 
 }
 
 
+
 /* =========================================================
-   ACTUALIZAR INTERFAZ
+   UPDATE UI
 ========================================================= */
 
 function updateUI(){
 
   if(active){
 
-    $("statusBadge").textContent =
+    $("statusBadge")
+      .textContent =
       "Trabajando";
 
-    $("statusBadge").className =
+
+    $("statusBadge")
+      .className =
       "badge ok";
 
-    $("currentSite").textContent =
-      active.site || "—";
 
-    $("entryTime").textContent =
-      formatTime(active.in);
+    $("currentSite")
+      .textContent =
+      active.site ||
+      "—";
+
+
+    $("entryTime")
+      .textContent =
+      formatTime(
+        active.in
+      );
 
 
     const ms =
-      Date.now() -
-      new Date(active.in)
-        .getTime();
+
+      Date.now()
+
+      -
+
+      new Date(
+        active.in
+      ).getTime();
 
 
-    $("worked").textContent =
+    $("worked")
+      .textContent =
       hours(ms);
 
   }
 
   else{
 
-    $("statusBadge").textContent =
+    $("statusBadge")
+      .textContent =
       "Fuera";
 
-    $("statusBadge").className =
+
+    $("statusBadge")
+      .className =
       "badge off";
 
-    $("currentSite").textContent =
+
+    $("currentSite")
+      .textContent =
       "—";
 
-    $("entryTime").textContent =
+
+    $("entryTime")
+      .textContent =
       "--:--";
 
-    $("worked").textContent =
+
+    $("worked")
+      .textContent =
       "0 h";
 
   }
@@ -1335,13 +2506,17 @@ function updateUI(){
 }
 
 
+
 /* =========================================================
-   ENCONTRAR CENTRO
+   BUSCAR CENTRO POR POSICIÓN
 ========================================================= */
 
 function findSiteByPosition(
+
   lat,
+
   lon
+
 ){
 
   if(!sites.length)
@@ -1349,25 +2524,33 @@ function findSiteByPosition(
 
 
   for(
-    const site of sites
+    const site
+    of sites
   ){
 
     const d =
+
       distance(
+
         lat,
+
         lon,
+
         Number(site.lat),
+
         Number(site.lon)
+
       );
 
 
     if(
-      d <= Number(site.radius)
+      d <=
+      Number(site.radius)
     ){
 
       return {
 
-        site,
+        site:site,
 
         distance:d
 
@@ -1383,219 +2566,19 @@ function findSiteByPosition(
 }
 
 
-/* =========================================================
-   FICHAR ENTRADA
-========================================================= */
-
-async function startShift(
-  site,
-  lat,
-  lon
-){
-
-  if(active){
-
-    alert(
-      "Ya hay una jornada en curso."
-    );
-
-    return;
-
-  }
-
-
-  const now =
-    new Date()
-      .toISOString();
-
-
-  const shift = {
-
-    site:site.name,
-
-    siteId:site.id || null,
-
-    in:now,
-
-    out:null,
-
-    latIn:Number(lat),
-
-    lonIn:Number(lon)
-
-  };
-
-
-  try{
-
-    const docRef =
-      await addDoc(
-        userLogsCollection(),
-        shift
-      );
-
-
-    active = {
-
-      id:docRef.id,
-
-      ...shift
-
-    };
-
-
-    logs.unshift(
-      active
-    );
-
-
-    updateUI();
-
-    renderHistory();
-
-    $("geoMsg").textContent =
-      `Entrada registrada en ${site.name}.`;
-
-    $("geoMsg").className =
-      "success";
-
-
-    navigator.vibrate?.(80);
-
-  }
-  catch(error){
-
-    console.error(error);
-
-    alert(
-      "No se pudo registrar la entrada. Comprueba tu conexión."
-    );
-
-  }
-
-}
-
 
 /* =========================================================
-   FICHAR SALIDA
-========================================================= */
-
-async function endShift(
-  lat = null,
-  lon = null
-){
-
-  if(!active){
-
-    alert(
-      "No hay ninguna jornada en curso."
-    );
-
-    return;
-
-  }
-
-
-  const out =
-    new Date()
-      .toISOString();
-
-
-  const updateData = {
-
-    out:out
-
-  };
-
-
-  if(
-    lat !== null &&
-    lon !== null
-  ){
-
-    updateData.latOut =
-      Number(lat);
-
-    updateData.lonOut =
-      Number(lon);
-
-  }
-
-
-  try{
-
-    await updateDoc(
-      doc(
-        db,
-        "users",
-        currentUser.uid,
-        "logs",
-        active.id
-      ),
-      updateData
-    );
-
-
-    const index =
-      logs.findIndex(
-        l => l.id === active.id
-      );
-
-
-    if(index !== -1){
-
-      logs[index] = {
-
-        ...logs[index],
-
-        ...updateData
-
-      };
-
-    }
-
-
-    active = null;
-
-
-    updateUI();
-
-    renderHistory();
-
-
-    $("geoMsg").textContent =
-      "Salida registrada correctamente.";
-
-    $("geoMsg").className =
-      "success";
-
-
-    navigator.vibrate?.(
-      [80,40,80]
-    );
-
-  }
-  catch(error){
-
-    console.error(error);
-
-    alert(
-      "No se pudo registrar la salida. Comprueba tu conexión."
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   OBTENER UBICACIÓN ACTUAL
+   OBTENER GPS
 ========================================================= */
 
 function getCurrentPosition(){
 
   return new Promise(
-    (resolve,reject) => {
+
+    (
+      resolve,
+      reject
+    ) => {
 
       if(
         !navigator.geolocation
@@ -1644,16 +2627,281 @@ function getCurrentPosition(){
         );
 
     }
+
   );
 
 }
 
 
+
 /* =========================================================
-   FICHAR ENTRADA DESDE BOTÓN
+   START SHIFT
+========================================================= */
+
+async function startShift(
+
+  site,
+
+  lat,
+
+  lon
+
+){
+
+  if(active){
+
+    alert(
+      "Ya hay una jornada en curso."
+    );
+
+    return;
+
+  }
+
+
+  const now =
+    new Date()
+      .toISOString();
+
+
+  const shift = {
+
+    site:
+      site.name,
+
+    siteId:
+      site.id || null,
+
+    in:
+      now,
+
+    out:
+      null,
+
+    latIn:
+      Number(lat),
+
+    lonIn:
+      Number(lon),
+
+    latOut:
+      null,
+
+    lonOut:
+      null
+
+  };
+
+
+  try{
+
+    const docRef =
+
+      await addDoc(
+
+        userLogsCollection(),
+
+        shift
+
+      );
+
+
+    active = {
+
+      id:
+        docRef.id,
+
+      ...shift
+
+    };
+
+
+    logs.unshift(
+      active
+    );
+
+
+    updateUI();
+
+    renderHistory();
+
+
+    $("geoMsg").textContent =
+
+      `Entrada registrada en ${site.name}.`;
+
+
+    $("geoMsg").className =
+      "success";
+
+
+    navigator.vibrate?.(
+      80
+    );
+
+  }
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      "No se pudo registrar la entrada. Comprueba tu conexión."
+    );
+
+  }
+
+}
+
+
+
+/* =========================================================
+   END SHIFT
+========================================================= */
+
+async function endShift(
+
+  lat=null,
+
+  lon=null
+
+){
+
+  if(!active){
+
+    alert(
+      "No hay ninguna jornada en curso."
+    );
+
+    return;
+
+  }
+
+
+  const out =
+    new Date()
+      .toISOString();
+
+
+  const updateData = {
+
+    out:
+      out
+
+  };
+
+
+  if(
+
+    lat !== null &&
+
+    lon !== null
+
+  ){
+
+    updateData.latOut =
+      Number(lat);
+
+    updateData.lonOut =
+      Number(lon);
+
+  }
+
+
+  try{
+
+    await updateDoc(
+
+      doc(
+
+        db,
+
+        "users",
+
+        currentUser.uid,
+
+        "logs",
+
+        active.id
+
+      ),
+
+      updateData
+
+    );
+
+
+    const index =
+
+      logs.findIndex(
+
+        log =>
+          log.id ===
+          active.id
+
+      );
+
+
+    if(index !== -1){
+
+      logs[index] = {
+
+        ...logs[index],
+
+        ...updateData
+
+      };
+
+    }
+
+
+    active =
+      null;
+
+
+    updateUI();
+
+    renderHistory();
+
+
+    $("geoMsg").textContent =
+      "Salida registrada correctamente.";
+
+
+    $("geoMsg").className =
+      "success";
+
+
+    navigator.vibrate?.(
+      [80,40,80]
+    );
+
+  }
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      "No se pudo registrar la salida. Comprueba tu conexión."
+    );
+
+  }
+
+}
+
+
+
+/* =========================================================
+   FICHAJE ENTRADA
 ========================================================= */
 
 $("manualIn").onclick =
+
   async () => {
 
     if(!sites.length){
@@ -1681,6 +2929,7 @@ $("manualIn").onclick =
     $("geoMsg").textContent =
       "Comprobando tu ubicación...";
 
+
     $("geoMsg").className =
       "small";
 
@@ -1693,6 +2942,7 @@ $("manualIn").onclick =
 
       const lat =
         position.coords.latitude;
+
 
       const lon =
         position.coords.longitude;
@@ -1708,10 +2958,14 @@ $("manualIn").onclick =
       if(!result){
 
         $("geoMsg").textContent =
-          "No estás dentro del radio de ningún centro. No se ha registrado la entrada.";
+
+          "No estás dentro del radio de ningún centro. " +
+          "No se ha registrado la entrada.";
+
 
         $("geoMsg").className =
           "error";
+
 
         return;
 
@@ -1719,25 +2973,39 @@ $("manualIn").onclick =
 
 
       $("geoMsg").textContent =
-        `Estás a ${Math.round(result.distance)} m de ${result.site.name}.`;
+
+        `Estás a ${Math.round(
+          result.distance
+        )} m de ${result.site.name}.`;
+
 
       $("geoMsg").className =
         "success";
 
 
       await startShift(
+
         result.site,
+
         lat,
+
         lon
+
       );
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       $("geoMsg").textContent =
-        "No se ha podido obtener tu ubicación. Comprueba que Safari tiene permiso para usarla.";
+
+        "No se ha podido obtener tu ubicación. " +
+        "Comprueba que Safari tiene permiso para usarla.";
+
 
       $("geoMsg").className =
         "error";
@@ -1747,11 +3015,13 @@ $("manualIn").onclick =
   };
 
 
+
 /* =========================================================
-   FICHAR SALIDA DESDE BOTÓN
+   FICHAJE SALIDA
 ========================================================= */
 
 $("manualOut").onclick =
+
   async () => {
 
     if(!active){
@@ -1768,6 +3038,7 @@ $("manualOut").onclick =
     $("geoMsg").textContent =
       "Comprobando tu ubicación...";
 
+
     $("geoMsg").className =
       "small";
 
@@ -1781,14 +3052,10 @@ $("manualOut").onclick =
       const lat =
         position.coords.latitude;
 
+
       const lon =
         position.coords.longitude;
 
-
-      /*
-       * Para la salida exigimos también
-       * estar dentro de algún centro.
-       */
 
       const result =
         findSiteByPosition(
@@ -1800,10 +3067,14 @@ $("manualOut").onclick =
       if(!result){
 
         $("geoMsg").textContent =
-          "No estás dentro del radio del centro. No se ha registrado la salida.";
+
+          "No estás dentro del radio del centro. " +
+          "No se ha registrado la salida.";
+
 
         $("geoMsg").className =
           "error";
+
 
         return;
 
@@ -1811,17 +3082,25 @@ $("manualOut").onclick =
 
 
       await endShift(
+
         lat,
+
         lon
+
       );
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       $("geoMsg").textContent =
+
         "No se ha podido obtener tu ubicación.";
+
 
       $("geoMsg").className =
         "error";
@@ -1831,11 +3110,13 @@ $("manualOut").onclick =
   };
 
 
+
 /* =========================================================
    ACTIVAR GEOLOCALIZACIÓN
 ========================================================= */
 
 $("geoBtn").onclick =
+
   async () => {
 
     if(
@@ -1843,10 +3124,13 @@ $("geoBtn").onclick =
     ){
 
       $("geoMsg").textContent =
+
         "Este navegador no soporta geolocalización.";
+
 
       $("geoMsg").className =
         "error";
+
 
       return;
 
@@ -1860,15 +3144,21 @@ $("geoBtn").onclick =
 
 
       $("geoMsg").textContent =
-        "Localización activada. La app comprobará tu posición mientras permanezca abierta.";
+
+        "Localización activada. " +
+        "La app comprobará tu posición mientras permanezca abierta.";
+
 
       $("geoMsg").className =
         "success";
 
 
       checkPosition(
+
         position.coords.latitude,
+
         position.coords.longitude
+
       );
 
 
@@ -1883,14 +3173,18 @@ $("geoBtn").onclick =
 
 
       watchId =
+
         navigator.geolocation
           .watchPosition(
 
             position => {
 
               checkPosition(
+
                 position.coords.latitude,
+
                 position.coords.longitude
+
               );
 
             },
@@ -1898,7 +3192,7 @@ $("geoBtn").onclick =
             error => {
 
               console.warn(
-                "Error de geolocalización:",
+                "Error GPS:",
                 error
               );
 
@@ -1919,10 +3213,15 @@ $("geoBtn").onclick =
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       $("geoMsg").textContent =
+
         "Permite el acceso a la ubicación en Safari.";
+
 
       $("geoMsg").className =
         "error";
@@ -1932,13 +3231,17 @@ $("geoBtn").onclick =
   };
 
 
+
 /* =========================================================
-   COMPROBAR POSICIÓN
+   CHECK POSITION
 ========================================================= */
 
 async function checkPosition(
+
   lat,
+
   lon
+
 ){
 
   if(!sites.length)
@@ -1953,9 +3256,8 @@ async function checkPosition(
 
 
   /*
-   * Si estamos dentro de un centro
-   * y no hay jornada:
-   * entrada automática.
+   * Entrada automática cuando
+   * la página está abierta.
    */
 
   if(
@@ -1964,42 +3266,34 @@ async function checkPosition(
   ){
 
     await startShift(
+
       result.site,
+
       lat,
+
       lon
+
     );
 
-    return;
-
   }
-
-
-  /*
-   * Si salimos del centro mientras
-   * hay jornada activa:
-   *
-   * NO hacemos salida automática
-   * inmediatamente porque el GPS puede
-   * tener pequeñas oscilaciones.
-   *
-   * La salida automática la dejamos
-   * desactivada por ahora.
-   */
 
 }
 
 
+
 /* =========================================================
-   USAR UBICACIÓN PARA CREAR CENTRO
+   USAR UBICACIÓN PARA CENTRO
 ========================================================= */
 
 $("useLocation").onclick =
+
   async () => {
 
     try{
 
       $("useLocation").disabled =
         true;
+
 
       $("useLocation").textContent =
         "Obteniendo ubicación...";
@@ -2010,22 +3304,29 @@ $("useLocation").onclick =
 
 
       $("lat").value =
+
         position.coords.latitude
           .toFixed(6);
 
 
       $("lon").value =
+
         position.coords.longitude
           .toFixed(6);
-
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       alert(
-        "No se pudo obtener tu ubicación. Comprueba los permisos de Safari."
+
+        "No se pudo obtener tu ubicación. " +
+        "Comprueba los permisos de Safari."
+
       );
 
     }
@@ -2033,6 +3334,7 @@ $("useLocation").onclick =
 
       $("useLocation").disabled =
         false;
+
 
       $("useLocation").textContent =
         "Usar mi ubicación actual";
@@ -2042,11 +3344,13 @@ $("useLocation").onclick =
   };
 
 
+
 /* =========================================================
    GUARDAR CENTRO
 ========================================================= */
 
 $("saveSite").onclick =
+
   async () => {
 
     if(!currentUser)
@@ -2078,9 +3382,13 @@ $("saveSite").onclick =
 
 
     if(
+
       !name ||
+
       isNaN(lat) ||
+
       isNaN(lon)
+
     ){
 
       alert(
@@ -2093,10 +3401,15 @@ $("saveSite").onclick =
 
 
     if(
+
       lat < -90 ||
+
       lat > 90 ||
+
       lon < -180 ||
+
       lon > 180
+
     ){
 
       alert(
@@ -2109,8 +3422,11 @@ $("saveSite").onclick =
 
 
     if(
+
       radius < 10 ||
+
       radius > 5000
+
     ){
 
       alert(
@@ -2126,6 +3442,7 @@ $("saveSite").onclick =
 
       $("saveSite").disabled =
         true;
+
 
       $("saveSite").textContent =
         "Guardando...";
@@ -2145,15 +3462,20 @@ $("saveSite").onclick =
 
 
       const docRef =
+
         await addDoc(
+
           userSitesCollection(),
+
           site
+
         );
 
 
       sites.push({
 
-        id:docRef.id,
+        id:
+          docRef.id,
 
         ...site
 
@@ -2168,7 +3490,9 @@ $("saveSite").onclick =
 
 
       $("geoMsg").textContent =
+
         `Centro "${name}" guardado correctamente.`;
+
 
       $("geoMsg").className =
         "success";
@@ -2176,7 +3500,10 @@ $("saveSite").onclick =
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       alert(
         "No se pudo guardar el centro. Comprueba tu conexión."
@@ -2188,6 +3515,7 @@ $("saveSite").onclick =
       $("saveSite").disabled =
         false;
 
+
       $("saveSite").textContent =
         "Guardar centro";
 
@@ -2196,11 +3524,13 @@ $("saveSite").onclick =
   };
 
 
+
 /* =========================================================
    BORRAR HISTORIAL
 ========================================================= */
 
 $("clear").onclick =
+
   async () => {
 
     if(!currentUser)
@@ -2219,9 +3549,14 @@ $("clear").onclick =
 
 
     if(
+
       !confirm(
-        "¿Borrar todo el historial? Esta acción no se puede deshacer."
+
+        "¿Borrar todo el historial? " +
+        "Esta acción no se puede deshacer."
+
       )
+
     ){
 
       return;
@@ -2235,30 +3570,38 @@ $("clear").onclick =
         true;
 
 
-      /*
-       * Borramos uno a uno.
-       */
-
       for(
-        const log of logs
+        const log
+        of logs
       ){
 
         await deleteDoc(
+
           doc(
+
             db,
+
             "users",
+
             currentUser.uid,
+
             "logs",
+
             log.id
+
           )
+
         );
 
       }
 
 
-      logs = [];
+      logs =
+        [];
 
-      active = null;
+
+      active =
+        null;
 
 
       renderHistory();
@@ -2269,13 +3612,17 @@ $("clear").onclick =
       $("geoMsg").textContent =
         "Historial borrado.";
 
+
       $("geoMsg").className =
         "success";
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       alert(
         "No se pudo borrar todo el historial."
@@ -2292,11 +3639,13 @@ $("clear").onclick =
   };
 
 
+
 /* =========================================================
    LOGIN
 ========================================================= */
 
 $("loginBtn").onclick =
+
   async () => {
 
     clearAuthMessage();
@@ -2313,7 +3662,10 @@ $("loginBtn").onclick =
         .value;
 
 
-    if(!email || !password){
+    if(
+      !email ||
+      !password
+    ){
 
       showAuthMessage(
         "Introduce tu correo y contraseña."
@@ -2329,28 +3681,38 @@ $("loginBtn").onclick =
       $("loginBtn").disabled =
         true;
 
+
       $("loginBtn").textContent =
         "Entrando...";
 
 
       await signInWithEmailAndPassword(
+
         auth,
+
         email,
+
         password
+
       );
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       let message =
         "No se pudo iniciar sesión.";
 
 
       if(
+
         error.code ===
         "auth/invalid-credential"
+
       ){
 
         message =
@@ -2359,8 +3721,10 @@ $("loginBtn").onclick =
       }
 
       else if(
+
         error.code ===
         "auth/too-many-requests"
+
       ){
 
         message =
@@ -2379,6 +3743,7 @@ $("loginBtn").onclick =
       $("loginBtn").disabled =
         false;
 
+
       $("loginBtn").textContent =
         "Entrar";
 
@@ -2387,11 +3752,13 @@ $("loginBtn").onclick =
   };
 
 
+
 /* =========================================================
    REGISTRO
 ========================================================= */
 
 $("registerBtn").onclick =
+
   async () => {
 
     clearAuthMessage();
@@ -2408,7 +3775,10 @@ $("registerBtn").onclick =
         .value;
 
 
-    if(!email || !password){
+    if(
+      !email ||
+      !password
+    ){
 
       showAuthMessage(
         "Introduce un correo y una contraseña."
@@ -2419,7 +3789,9 @@ $("registerBtn").onclick =
     }
 
 
-    if(password.length < 6){
+    if(
+      password.length < 6
+    ){
 
       showAuthMessage(
         "La contraseña debe tener al menos 6 caracteres."
@@ -2435,28 +3807,38 @@ $("registerBtn").onclick =
       $("registerBtn").disabled =
         true;
 
+
       $("registerBtn").textContent =
         "Creando cuenta...";
 
 
       await createUserWithEmailAndPassword(
+
         auth,
+
         email,
+
         password
+
       );
 
     }
     catch(error){
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       let message =
         "No se pudo crear la cuenta.";
 
 
       if(
+
         error.code ===
         "auth/email-already-in-use"
+
       ){
 
         message =
@@ -2465,8 +3847,10 @@ $("registerBtn").onclick =
       }
 
       else if(
+
         error.code ===
         "auth/invalid-email"
+
       ){
 
         message =
@@ -2475,8 +3859,10 @@ $("registerBtn").onclick =
       }
 
       else if(
+
         error.code ===
         "auth/weak-password"
+
       ){
 
         message =
@@ -2495,6 +3881,7 @@ $("registerBtn").onclick =
       $("registerBtn").disabled =
         false;
 
+
       $("registerBtn").textContent =
         "Crear cuenta";
 
@@ -2503,20 +3890,24 @@ $("registerBtn").onclick =
   };
 
 
+
 /* =========================================================
    CAMBIAR LOGIN / REGISTRO
 ========================================================= */
 
 $("showRegister").onclick =
+
   () => {
 
     hide(
       $("loginForm")
     );
 
+
     show(
       $("registerForm")
     );
+
 
     clearAuthMessage();
 
@@ -2524,19 +3915,23 @@ $("showRegister").onclick =
 
 
 $("showLogin").onclick =
+
   () => {
 
     hide(
       $("registerForm")
     );
 
+
     show(
       $("loginForm")
     );
 
+
     clearAuthMessage();
 
   };
+
 
 
 /* =========================================================
@@ -2544,6 +3939,7 @@ $("showLogin").onclick =
 ========================================================= */
 
 $("logoutBtn").onclick =
+
   async () => {
 
     if(watchId){
@@ -2553,7 +3949,9 @@ $("logoutBtn").onclick =
           watchId
         );
 
-      watchId = null;
+
+      watchId =
+        null;
 
     }
 
@@ -2565,12 +3963,954 @@ $("logoutBtn").onclick =
   };
 
 
+
+/* =========================================================
+   FECHAS POR DEFECTO
+========================================================= */
+
+function setDefaultExportDates(){
+
+  const today =
+    new Date();
+
+
+  const first =
+    new Date(
+
+      today.getFullYear(),
+
+      today.getMonth(),
+
+      1
+
+    );
+
+
+  const formatInputDate =
+    date => {
+
+      const y =
+        date.getFullYear();
+
+
+      const m =
+        String(
+          date.getMonth()+1
+        ).padStart(
+          2,
+          "0"
+        );
+
+
+      const d =
+        String(
+          date.getDate()
+        ).padStart(
+          2,
+          "0"
+        );
+
+
+      return `${y}-${m}-${d}`;
+
+    };
+
+
+  $("exportFrom").value =
+    formatInputDate(
+      first
+    );
+
+
+  $("exportTo").value =
+    formatInputDate(
+      today
+    );
+
+}
+
+
+
+/* =========================================================
+   ABRIR MODAL EXPORTACIÓN
+========================================================= */
+
+$("exportExcel").onclick =
+
+  () => {
+
+    const from =
+      $("exportFrom").value;
+
+
+    const to =
+      $("exportTo").value;
+
+
+    $("modalFrom").value =
+      from;
+
+
+    $("modalTo").value =
+      to;
+
+
+    $("modalExportMsg").textContent =
+      "";
+
+
+    show(
+      $("exportModal")
+    );
+
+  };
+
+
+
+/* =========================================================
+   CANCELAR EXPORTACIÓN
+========================================================= */
+
+$("cancelExport").onclick =
+
+  () => {
+
+    hide(
+      $("exportModal")
+    );
+
+  };
+
+
+
+/* =========================================================
+   CERRAR MODAL TOCANDO FONDO
+========================================================= */
+
+$("exportModal").onclick =
+
+  event => {
+
+    if(
+      event.target ===
+      $("exportModal")
+    ){
+
+      hide(
+        $("exportModal")
+      );
+
+    }
+
+  };
+
+
+
+/* =========================================================
+   VALIDAR FECHAS
+========================================================= */
+
+function validateDateRange(
+
+  from,
+
+  to
+
+){
+
+  if(!from || !to){
+
+    return {
+
+      valid:false,
+
+      message:
+        "Selecciona las dos fechas."
+
+    };
+
+  }
+
+
+  if(from > to){
+
+    return {
+
+      valid:false,
+
+      message:
+        "La fecha inicial no puede ser posterior a la fecha final."
+
+    };
+
+  }
+
+
+  return {
+
+    valid:true,
+
+    message:""
+
+  };
+
+}
+
+
+
+/* =========================================================
+   FILTRAR LOGS POR FECHA
+========================================================= */
+
+function filterLogsByDate(
+
+  sourceLogs,
+
+  from,
+
+  to
+
+){
+
+  /*
+   * Las fechas del input son
+   * YYYY-MM-DD.
+   *
+   * Construimos límites locales
+   * para incluir todo el día.
+   */
+
+  const start =
+    new Date(
+      `${from}T00:00:00`
+    );
+
+
+  const end =
+    new Date(
+      `${to}T23:59:59.999`
+    );
+
+
+  return sourceLogs.filter(
+
+    log => {
+
+      if(!log.in)
+        return false;
+
+
+      const date =
+        new Date(
+          log.in
+        );
+
+
+      return (
+
+        date >= start &&
+
+        date <= end
+
+      );
+
+    }
+
+  );
+
+}
+
+
+
+/* =========================================================
+   CREAR DATOS PARA EXCEL
+========================================================= */
+
+function createExcelRows(
+
+  selectedLogs
+
+){
+
+  return selectedLogs.map(
+
+    log => {
+
+      let totalMs =
+        0;
+
+
+      if(
+        log.in &&
+        log.out
+      ){
+
+        totalMs =
+
+          new Date(
+            log.out
+          )
+
+          -
+
+          new Date(
+            log.in
+          );
+
+      }
+
+
+      return {
+
+        "Fecha":
+          formatDateForExcel(
+            log.in
+          ),
+
+        "Centro":
+          log.site ||
+          "",
+
+        "Entrada":
+          formatDateTimeForExcel(
+            log.in
+          ),
+
+        "Salida":
+          log.out
+            ?
+            formatDateTimeForExcel(
+              log.out
+            )
+            :
+            "",
+
+        "Horas":
+          hoursDecimal(
+            totalMs
+          ),
+
+        "Duración":
+          log.out
+            ?
+            hours(
+              totalMs
+            )
+            :
+            "En curso",
+
+        "Latitud entrada":
+          log.latIn ??
+          "",
+
+        "Longitud entrada":
+          log.lonIn ??
+          "",
+
+        "Latitud salida":
+          log.latOut ??
+          "",
+
+        "Longitud salida":
+          log.lonOut ??
+          ""
+
+      };
+
+    }
+
+  );
+
+}
+
+
+
+/* =========================================================
+   CREAR RESUMEN DIARIO
+========================================================= */
+
+function createDailySummary(
+
+  selectedLogs
+
+){
+
+  const days =
+    {};
+
+
+  selectedLogs.forEach(
+
+    log => {
+
+      if(!log.in)
+        return;
+
+
+      const date =
+        new Date(
+          log.in
+        );
+
+
+      const key =
+
+        date.getFullYear()
+
+        +
+
+        "-"
+
+        +
+
+        String(
+          date.getMonth()+1
+        )
+        .padStart(
+          2,
+          "0"
+        )
+
+        +
+
+        "-"
+
+        +
+
+        String(
+          date.getDate()
+        )
+        .padStart(
+          2,
+          "0"
+        );
+
+
+      if(!days[key]){
+
+        days[key] = {
+
+          date:key,
+
+          totalMs:0,
+
+          records:0
+
+        };
+
+      }
+
+
+      days[key]
+        .records++;
+
+
+      if(
+        log.in &&
+        log.out
+      ){
+
+        days[key]
+          .totalMs +=
+
+          new Date(
+            log.out
+          )
+
+          -
+
+          new Date(
+            log.in
+          );
+
+      }
+
+    }
+
+  );
+
+
+  return Object
+    .values(days)
+    .sort(
+      (
+        a,
+        b
+      ) =>
+        a.date.localeCompare(
+          b.date
+        )
+    )
+    .map(
+
+      day => {
+
+        const date =
+          new Date(
+            `${day.date}T12:00:00`
+          );
+
+
+        return {
+
+          "Fecha":
+            formatDateForExcel(
+              date
+            ),
+
+          "Fichajes":
+            day.records,
+
+          "Horas":
+            hoursDecimal(
+              day.totalMs
+            ),
+
+          "Duración":
+            hours(
+              day.totalMs
+            )
+
+        };
+
+      }
+
+    );
+
+}
+
+
+
+/* =========================================================
+   EXPORTAR A EXCEL
+========================================================= */
+
+async function exportToExcel(
+
+  from,
+
+  to
+
+){
+
+  const validation =
+    validateDateRange(
+      from,
+      to
+    );
+
+
+  if(
+    !validation.valid
+  ){
+
+    $("modalExportMsg")
+      .textContent =
+      validation.message;
+
+
+    $("modalExportMsg")
+      .className =
+      "error";
+
+
+    return;
+
+  }
+
+
+  if(!currentUser){
+
+    $("modalExportMsg")
+      .textContent =
+      "Debes iniciar sesión.";
+
+    return;
+
+  }
+
+
+  try{
+
+    $("confirmExport").disabled =
+      true;
+
+
+    $("confirmExport").textContent =
+      "Preparando...";
+
+
+    $("modalExportMsg")
+      .textContent =
+      "Consultando tus registros...";
+
+
+    $("modalExportMsg")
+      .className =
+      "small";
+
+
+    /*
+     * Descargamos los registros disponibles
+     * del usuario.
+     */
+
+    const q =
+      query(
+
+        userLogsCollection(),
+
+        orderBy(
+          "in",
+          "desc"
+        ),
+
+        limit(5000)
+
+      );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    const allLogs =
+      [];
+
+
+    snapshot.forEach(
+
+      item => {
+
+        allLogs.push({
+
+          id:item.id,
+
+          ...item.data()
+
+        });
+
+      }
+
+    );
+
+
+    const selectedLogs =
+      filterLogsByDate(
+
+        allLogs,
+
+        from,
+
+        to
+
+      );
+
+
+    if(!selectedLogs.length){
+
+      $("modalExportMsg")
+        .textContent =
+        "No hay registros en el periodo seleccionado.";
+
+
+      $("modalExportMsg")
+        .className =
+        "error";
+
+
+      return;
+
+    }
+
+
+    const rows =
+      createExcelRows(
+        selectedLogs
+      );
+
+
+    const daily =
+      createDailySummary(
+        selectedLogs
+      );
+
+
+    /*
+     * SheetJS está disponible mediante
+     * CDN.
+     */
+
+    if(
+      typeof XLSX ===
+      "undefined"
+    ){
+
+      throw new Error(
+        "La librería de Excel no está disponible."
+      );
+
+    }
+
+
+    /*
+     * HOJA 1
+     */
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        rows
+      );
+
+
+    /*
+     * Anchos de columnas.
+     */
+
+    worksheet["!cols"] = [
+
+      {
+        wch:12
+      },
+
+      {
+        wch:20
+      },
+
+      {
+        wch:22
+      },
+
+      {
+        wch:22
+      },
+
+      {
+        wch:10
+      },
+
+      {
+        wch:15
+      },
+
+      {
+        wch:17
+      },
+
+      {
+        wch:18
+      },
+
+      {
+        wch:17
+      },
+
+      {
+        wch:18
+      }
+
+    ];
+
+
+    /*
+     * HOJA 2
+     */
+
+    const summarySheet =
+      XLSX.utils.json_to_sheet(
+        daily
+      );
+
+
+    summarySheet["!cols"] = [
+
+      {
+        wch:12
+      },
+
+      {
+        wch:12
+      },
+
+      {
+        wch:12
+      },
+
+      {
+        wch:16
+      }
+
+    ];
+
+
+    /*
+     * Crear libro.
+     */
+
+    const workbook =
+      XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+
+      workbook,
+
+      worksheet,
+
+      "Registros"
+
+    );
+
+
+    XLSX.utils.book_append_sheet(
+
+      workbook,
+
+      summarySheet,
+
+      "Resumen diario"
+
+    );
+
+
+    /*
+     * Nombre del archivo.
+     */
+
+    const email =
+      currentUser.email
+        ? currentUser.email
+            .split("@")[0]
+        : "usuario";
+
+
+    const cleanEmail =
+      email.replace(
+        /[^a-zA-Z0-9_-]/g,
+        "_"
+      );
+
+
+    const fileName =
+
+      `GeoFichaje_${cleanEmail}_` +
+
+      `${from}_` +
+
+      `${to}.xlsx`;
+
+
+    /*
+     * Descargar.
+     */
+
+    XLSX.writeFile(
+
+      workbook,
+
+      fileName
+
+    );
+
+
+    $("modalExportMsg")
+      .textContent =
+
+      `Se han exportado ${selectedLogs.length} registros.`;
+
+
+    $("modalExportMsg")
+      .className =
+      "success";
+
+
+    /*
+     * Actualizar valores principales.
+     */
+
+    $("exportFrom").value =
+      from;
+
+
+    $("exportTo").value =
+      to;
+
+
+    $("exportMsg").textContent =
+
+      `Última exportación: ${selectedLogs.length} registros.`;
+
+  }
+  catch(error){
+
+    console.error(
+      error
+    );
+
+
+    $("modalExportMsg")
+      .textContent =
+
+      "No se pudo generar el Excel. " +
+      "Comprueba tu conexión e inténtalo de nuevo.";
+
+
+    $("modalExportMsg")
+      .className =
+      "error";
+
+  }
+  finally{
+
+    $("confirmExport").disabled =
+      false;
+
+
+    $("confirmExport").textContent =
+      "Descargar Excel";
+
+  }
+
+}
+
+
+
+/* =========================================================
+   CONFIRMAR EXPORTACIÓN
+========================================================= */
+
+$("confirmExport").onclick =
+
+  async () => {
+
+    const from =
+      $("modalFrom").value;
+
+
+    const to =
+      $("modalTo").value;
+
+
+    await exportToExcel(
+
+      from,
+
+      to
+
+    );
+
+  };
+
+
+
 /* =========================================================
    AUTENTICACIÓN
 ========================================================= */
 
 onAuthStateChanged(
+
   auth,
+
   async user => {
 
     if(user){
@@ -2579,7 +4919,8 @@ onAuthStateChanged(
         user;
 
 
-      $("userEmail").textContent =
+      $("userEmail")
+        .textContent =
         user.email || "";
 
 
@@ -2587,24 +4928,35 @@ onAuthStateChanged(
         $("authScreen")
       );
 
+
       show(
         $("appScreen")
       );
+
+
+      setDefaultExportDates();
 
 
       try{
 
         await loadSites();
 
+
         await loadLogs();
 
       }
       catch(error){
 
-        console.error(error);
+        console.error(
+          error
+        );
+
 
         $("geoMsg").textContent =
-          "No se pudieron cargar los datos de Firebase. Comprueba tu conexión y las reglas de Firestore.";
+
+          "No se pudieron cargar los datos de Firebase. " +
+          "Comprueba tu conexión y las reglas de Firestore.";
+
 
         $("geoMsg").className =
           "error";
@@ -2618,11 +4970,17 @@ onAuthStateChanged(
       currentUser =
         null;
 
-      sites = [];
 
-      logs = [];
+      sites =
+        [];
 
-      active = null;
+
+      logs =
+        [];
+
+
+      active =
+        null;
 
 
       if(watchId){
@@ -2632,7 +4990,9 @@ onAuthStateChanged(
             watchId
           );
 
-        watchId = null;
+
+        watchId =
+          null;
 
       }
 
@@ -2641,6 +5001,7 @@ onAuthStateChanged(
         $("appScreen")
       );
 
+
       show(
         $("authScreen")
       );
@@ -2648,7 +5009,9 @@ onAuthStateChanged(
     }
 
   }
+
 );
+
 
 
 /* =========================================================
@@ -2656,12 +5019,31 @@ onAuthStateChanged(
 ========================================================= */
 
 timer =
+
   setInterval(
+
     updateUI,
+
     30000
+
   );
+
 
 </script>
 
+
+
+<!-- =====================================================
+     SHEETJS
+     
+     Librería utilizada para generar archivos .xlsx
+====================================================== -->
+
+<script
+  src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+></script>
+
+
 </body>
+
 </html>
