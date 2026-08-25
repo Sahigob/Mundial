@@ -919,6 +919,76 @@ const db =
 
 
 /* =========================================================
+   HORARIO DE GEOLOCALIZACIÓN
+=========================================================
+
+   CAMBIA AQUÍ LOS HORARIOS.
+
+   ENTRADA:
+   La geolocalización automática puede registrar
+   una entrada solamente entre entryStart y entryEnd.
+
+   SALIDA:
+   La geolocalización automática puede registrar
+   una salida solamente entre exitStart y exitEnd.
+
+   EJEMPLO ACTUAL:
+
+   Entrada: 10:00 - 12:00
+   Salida:  19:00 - 21:00
+
+========================================================= */
+
+const GEO_SCHEDULE = {
+
+  entryStart:
+    "10:00",
+
+  entryEnd:
+    "12:00",
+
+  exitStart:
+    "19:00",
+
+  exitEnd:
+    "21:00"
+
+};
+
+
+/* =========================================================
+   CONFIGURACIÓN DE SALIDA AUTOMÁTICA
+=========================================================
+
+   Para evitar que un error puntual del GPS provoque
+   una salida falsa, necesitamos varias lecturas
+   consecutivas fuera del radio.
+
+   Actualmente:
+   3 lecturas consecutivas fuera del radio.
+
+   Puedes aumentar este número si quieres que sea
+   todavía más conservador.
+
+========================================================= */
+
+const EXIT_OUTSIDE_REQUIRED =
+  3;
+
+
+/*
+ * Tiempo mínimo entre comprobaciones de salida.
+ *
+ * watchPosition no garantiza un intervalo exacto,
+ * pero utilizamos esta variable para evitar procesar
+ * demasiadas lecturas consecutivas.
+ */
+
+const EXIT_CHECK_INTERVAL_MS =
+  5000;
+
+
+/* =========================================================
    VARIABLES
 ========================================================= */
 
@@ -933,6 +1003,32 @@ let active = null;
 let watchId = null;
 
 let timer = null;
+
+let scheduleTimer = null;
+
+
+/*
+ * Número de lecturas consecutivas en las que
+ * hemos detectado que el usuario está fuera
+ * del centro.
+ */
+
+let outsideCount = 0;
+
+
+/*
+ * Momento de la última comprobación utilizada
+ * para salida automática.
+ */
+
+let lastExitCheckTime = 0;
+
+
+/*
+ * Indica si el seguimiento automático está activo.
+ */
+
+let autoGeoActive = false;
 
 
 /* =========================================================
@@ -1095,6 +1191,193 @@ function escapeHtml(value){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================================
+   HORARIOS
+========================================================= */
+
+
+/*
+ * Convierte "10:30" a minutos desde medianoche.
+ */
+
+function timeToMinutes(
+  value
+){
+
+  if(
+    typeof value !== "string"
+  ){
+
+    return null;
+
+  }
+
+
+  const parts =
+    value.split(":");
+
+
+  if(
+    parts.length !== 2
+  ){
+
+    return null;
+
+  }
+
+
+  const hour =
+    Number(parts[0]);
+
+  const minute =
+    Number(parts[1]);
+
+
+  if(
+    !Number.isFinite(hour) ||
+    !Number.isFinite(minute)
+  ){
+
+    return null;
+
+  }
+
+
+  if(
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ){
+
+    return null;
+
+  }
+
+
+  return (
+    hour * 60 +
+    minute
+  );
+
+}
+
+
+/*
+ * Devuelve los minutos actuales.
+ */
+
+function getCurrentMinutes(){
+
+  const now =
+    new Date();
+
+  return (
+    now.getHours() * 60 +
+    now.getMinutes()
+  );
+
+}
+
+
+/*
+ * Comprueba si la hora actual está dentro
+ * de un intervalo.
+ *
+ * Los intervalos utilizados aquí no cruzan
+ * medianoche.
+ */
+
+function isCurrentTimeBetween(
+  start,
+  end
+){
+
+  const startMinutes =
+    timeToMinutes(start);
+
+  const endMinutes =
+    timeToMinutes(end);
+
+  const currentMinutes =
+    getCurrentMinutes();
+
+
+  if(
+    startMinutes === null ||
+    endMinutes === null
+  ){
+
+    return false;
+
+  }
+
+
+  return (
+    currentMinutes >= startMinutes &&
+    currentMinutes <= endMinutes
+  );
+
+}
+
+
+/*
+ * Ventana de entrada.
+ */
+
+function isEntryScheduleActive(){
+
+  return isCurrentTimeBetween(
+    GEO_SCHEDULE.entryStart,
+    GEO_SCHEDULE.entryEnd
+  );
+
+}
+
+
+/*
+ * Ventana de salida.
+ */
+
+function isExitScheduleActive(){
+
+  return isCurrentTimeBetween(
+    GEO_SCHEDULE.exitStart,
+    GEO_SCHEDULE.exitEnd
+  );
+
+}
+
+
+/*
+ * Ventana completa en la que puede funcionar
+ * la geolocalización automática.
+ */
+
+function isAutomaticGeoScheduleActive(){
+
+  return (
+    isEntryScheduleActive() ||
+    isExitScheduleActive()
+  );
+
+}
+
+
+/*
+ * Texto del horario actual.
+ */
+
+function getScheduleDescription(){
+
+  return (
+    `Entrada ${GEO_SCHEDULE.entryStart}–${GEO_SCHEDULE.entryEnd} · ` +
+    `Salida ${GEO_SCHEDULE.exitStart}–${GEO_SCHEDULE.exitEnd}`
+  );
 
 }
 
@@ -1540,6 +1823,67 @@ function findSiteByPosition(
 
 
 /* =========================================================
+   ENCONTRAR CENTRO MÁS CERCANO
+=========================================================
+
+   Esta función se utiliza para controlar la salida
+   automática.
+
+   Aunque el usuario esté fuera del radio, necesitamos
+   saber qué centro estábamos controlando y a qué
+   distancia está.
+
+========================================================= */
+
+function findNearestSiteByPosition(
+  lat,
+  lon
+){
+
+  if(!sites.length)
+    return null;
+
+
+  let nearest = null;
+
+
+  for(
+    const site of sites
+  ){
+
+    const d =
+      distance(
+        lat,
+        lon,
+        Number(site.lat),
+        Number(site.lon)
+      );
+
+
+    if(
+      !nearest ||
+      d < nearest.distance
+    ){
+
+      nearest = {
+
+        site,
+
+        distance:d
+
+      };
+
+    }
+
+  }
+
+
+  return nearest;
+
+}
+
+
+/* =========================================================
    FICHAR ENTRADA
 ========================================================= */
 
@@ -1550,10 +1894,6 @@ async function startShift(
 ){
 
   if(active){
-
-    alert(
-      "Ya hay una jornada en curso."
-    );
 
     return;
 
@@ -1610,7 +1950,7 @@ async function startShift(
     renderHistory();
 
     $("geoMsg").textContent =
-      `Entrada registrada en ${site.name}.`;
+      `Entrada registrada automáticamente en ${site.name}.`;
 
     $("geoMsg").className =
       "success";
@@ -1642,10 +1982,6 @@ async function endShift(
 ){
 
   if(!active){
-
-    alert(
-      "No hay ninguna jornada en curso."
-    );
 
     return;
 
@@ -1713,6 +2049,8 @@ async function endShift(
 
     active = null;
 
+    outsideCount = 0;
+
 
     updateUI();
 
@@ -1720,7 +2058,7 @@ async function endShift(
 
 
     $("geoMsg").textContent =
-      "Salida registrada correctamente.";
+      "Salida registrada automáticamente al salir del centro.";
 
     $("geoMsg").className =
       "success";
@@ -1801,6 +2139,275 @@ function getCurrentPosition(){
 
     }
   );
+
+}
+
+
+/* =========================================================
+   REINICIAR CONTROL DE SALIDA
+========================================================= */
+
+function resetOutsideCounter(){
+
+  outsideCount = 0;
+
+  lastExitCheckTime = 0;
+
+}
+
+
+/* =========================================================
+   DETENER GEOLOCALIZACIÓN AUTOMÁTICA
+========================================================= */
+
+function stopAutomaticGeolocation(){
+
+  if(watchId){
+
+    navigator.geolocation
+      .clearWatch(
+        watchId
+      );
+
+    watchId = null;
+
+  }
+
+
+  autoGeoActive = false;
+
+  resetOutsideCounter();
+
+}
+
+
+/* =========================================================
+   COMENZAR GEOLOCALIZACIÓN AUTOMÁTICA
+========================================================= */
+
+async function startAutomaticGeolocation(){
+
+  if(!currentUser)
+    return;
+
+
+  if(
+    !navigator.geolocation
+  ){
+
+    return;
+
+  }
+
+
+  if(
+    !isAutomaticGeoScheduleActive()
+  ){
+
+    stopAutomaticGeolocation();
+
+    return;
+
+  }
+
+
+  /*
+   * Si ya existe un seguimiento, no hacemos
+   * otro watchPosition.
+   */
+
+  if(watchId){
+
+    autoGeoActive = true;
+
+    return;
+
+  }
+
+
+  try{
+
+    /*
+     * Obtenemos primero una posición inmediata.
+     */
+
+    const position =
+      await getCurrentPosition();
+
+
+    /*
+     * Es posible que durante la espera haya
+     * cambiado el horario.
+     */
+
+    if(
+      !isAutomaticGeoScheduleActive()
+    ){
+
+      stopAutomaticGeolocation();
+
+      return;
+
+    }
+
+
+    autoGeoActive = true;
+
+
+    await checkPosition(
+      position.coords.latitude,
+      position.coords.longitude
+    );
+
+
+    /*
+     * Si durante la comprobación anterior
+     * la sesión terminó o cambió el estado,
+     * continuamos igualmente con watchPosition
+     * mientras estemos dentro del horario.
+     */
+
+    if(
+      !isAutomaticGeoScheduleActive()
+    ){
+
+      stopAutomaticGeolocation();
+
+      return;
+
+    }
+
+
+    watchId =
+      navigator.geolocation
+        .watchPosition(
+
+          position => {
+
+            checkPosition(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+
+          },
+
+          error => {
+
+            console.warn(
+              "Error de geolocalización:",
+              error
+            );
+
+            $("geoMsg").textContent =
+              "No se ha podido actualizar la ubicación. Comprueba los permisos de Safari.";
+
+            $("geoMsg").className =
+              "error";
+
+          },
+
+          {
+
+            enableHighAccuracy:true,
+
+            maximumAge:10000,
+
+            timeout:15000
+
+          }
+
+        );
+
+
+    $("geoMsg").textContent =
+      `Geolocalización automática activa. ${getScheduleDescription()}.`;
+
+    $("geoMsg").className =
+      "success";
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    autoGeoActive = false;
+
+    $("geoMsg").textContent =
+      "Permite el acceso a la ubicación en Safari para utilizar el fichaje automático.";
+
+    $("geoMsg").className =
+      "error";
+
+  }
+
+}
+
+
+/* =========================================================
+   CONTROL AUTOMÁTICO DEL HORARIO
+=========================================================
+
+   Esta función se ejecuta periódicamente.
+
+   Si estamos dentro de alguna ventana horaria:
+     -> activa la geolocalización.
+
+   Si estamos fuera de ambas:
+     -> detiene watchPosition.
+
+========================================================= */
+
+async function updateAutomaticGeolocationSchedule(){
+
+  if(!currentUser){
+
+    stopAutomaticGeolocation();
+
+    return;
+
+  }
+
+
+  const shouldRun =
+    isAutomaticGeoScheduleActive();
+
+
+  if(
+    shouldRun
+  ){
+
+    if(!watchId){
+
+      await startAutomaticGeolocation();
+
+    }
+
+  }
+  else{
+
+    if(watchId){
+
+      stopAutomaticGeolocation();
+
+    }
+
+  }
+
+
+  /*
+   * Si hay una jornada activa y estamos fuera
+   * de la ventana de salida, no contamos lecturas
+   * para una salida automática.
+   */
+
+  if(
+    active &&
+    !isExitScheduleActive()
+  ){
+
+    resetOutsideCounter();
+
+  }
 
 }
 
@@ -1988,7 +2595,7 @@ $("manualOut").onclick =
 
 
 /* =========================================================
-   ACTIVAR GEOLOCALIZACIÓN
+   ACTIVAR GEOLOCALIZACIÓN MANUAL
 ========================================================= */
 
 $("geoBtn").onclick =
@@ -2016,61 +2623,37 @@ $("geoBtn").onclick =
 
 
       $("geoMsg").textContent =
-        "Localización activada. La app comprobará tu posición mientras permanezca abierta.";
+        "Localización activada. El sistema utilizará el horario configurado para el fichaje automático.";
 
       $("geoMsg").className =
         "success";
 
 
-      checkPosition(
-        position.coords.latitude,
-        position.coords.longitude
-      );
+      /*
+       * Procesamos inmediatamente la posición
+       * si estamos dentro de una ventana válida.
+       */
 
+      if(
+        isAutomaticGeoScheduleActive()
+      ){
 
-      if(watchId){
-
-        navigator.geolocation
-          .clearWatch(
-            watchId
-          );
+        await checkPosition(
+          position.coords.latitude,
+          position.coords.longitude
+        );
 
       }
 
 
-      watchId =
-        navigator.geolocation
-          .watchPosition(
+      /*
+       * Iniciamos el seguimiento automático.
+       *
+       * El propio sistema se encargará de detenerlo
+       * fuera del horario.
+       */
 
-            position => {
-
-              checkPosition(
-                position.coords.latitude,
-                position.coords.longitude
-              );
-
-            },
-
-            error => {
-
-              console.warn(
-                "Error de geolocalización:",
-                error
-              );
-
-            },
-
-            {
-
-              enableHighAccuracy:true,
-
-              maximumAge:10000,
-
-              timeout:15000
-
-            }
-
-          );
+      await updateAutomaticGeolocationSchedule();
 
     }
     catch(error){
@@ -2101,6 +2684,23 @@ async function checkPosition(
     return;
 
 
+  /*
+   * FUERA DEL HORARIO DE GEOLOCALIZACIÓN
+   *
+   * No hacemos ningún fichaje automático.
+   */
+
+  if(
+    !isAutomaticGeoScheduleActive()
+  ){
+
+    resetOutsideCounter();
+
+    return;
+
+  }
+
+
   const result =
     findSiteByPosition(
       lat,
@@ -2109,15 +2709,21 @@ async function checkPosition(
 
 
   /*
-   * Si estamos dentro de un centro
-   * y no hay jornada:
-   * entrada automática.
+   * =======================================================
+   * ENTRADA AUTOMÁTICA
+   * =======================================================
+   *
+   * Solo puede ocurrir durante la ventana de entrada.
    */
 
   if(
+    isEntryScheduleActive() &&
     result &&
     !active
   ){
+
+    resetOutsideCounter();
+
 
     await startShift(
       result.site,
@@ -2125,22 +2731,177 @@ async function checkPosition(
       lon
     );
 
+
     return;
 
   }
 
 
   /*
-   * Si salimos del centro mientras
-   * hay jornada activa:
+   * =======================================================
+   * SALIDA AUTOMÁTICA
+   * =======================================================
    *
-   * NO hacemos salida automática
-   * inmediatamente porque el GPS puede
-   * tener pequeñas oscilaciones.
-   *
-   * La salida automática la dejamos
-   * desactivada por ahora.
+   * Solo puede ocurrir durante la ventana de salida.
    */
+
+  if(
+    isExitScheduleActive() &&
+    active
+  ){
+
+    const now =
+      Date.now();
+
+
+    /*
+     * Evitamos procesar demasiado rápido
+     * lecturas consecutivas.
+     */
+
+    if(
+      now - lastExitCheckTime <
+      EXIT_CHECK_INTERVAL_MS
+    ){
+
+      return;
+
+    }
+
+
+    lastExitCheckTime =
+      now;
+
+
+    /*
+     * Averiguamos cuál es el centro de la
+     * jornada activa.
+     */
+
+    let activeSite =
+      sites.find(
+        site =>
+          site.id === active.siteId
+      );
+
+
+    /*
+     * Si por algún motivo no existe siteId,
+     * utilizamos el nombre del centro.
+     */
+
+    if(
+      !activeSite
+    ){
+
+      activeSite =
+        sites.find(
+          site =>
+            site.name === active.site
+        );
+
+    }
+
+
+    /*
+     * Si no podemos encontrar el centro,
+     * no hacemos salida automática.
+     */
+
+    if(
+      !activeSite
+    ){
+
+      resetOutsideCounter();
+
+      return;
+
+    }
+
+
+    const activeDistance =
+      distance(
+        lat,
+        lon,
+        Number(activeSite.lat),
+        Number(activeSite.lon)
+      );
+
+
+    const activeRadius =
+      Number(activeSite.radius);
+
+
+    /*
+     * =====================================================
+     * ESTAMOS DENTRO DEL CENTRO
+     * =====================================================
+     */
+
+    if(
+      activeDistance <= activeRadius
+    ){
+
+      /*
+       * Si vuelve dentro del radio,
+       * cancelamos cualquier salida pendiente.
+       */
+
+      if(
+        outsideCount > 0
+      ){
+
+        $("geoMsg").textContent =
+          `Has vuelto al centro (${Math.round(activeDistance)} m). Se cancela la salida automática.`;
+
+        $("geoMsg").className =
+          "success";
+
+      }
+
+
+      resetOutsideCounter();
+
+      return;
+
+    }
+
+
+    /*
+     * =====================================================
+     * ESTAMOS FUERA DEL CENTRO
+     * =====================================================
+     */
+
+    outsideCount++;
+
+
+    $("geoMsg").textContent =
+      `Fuera del centro: ${Math.round(activeDistance)} m. Comprobación ${outsideCount}/${EXIT_OUTSIDE_REQUIRED}.`;
+
+    $("geoMsg").className =
+      "small";
+
+
+    /*
+     * Necesitamos varias lecturas consecutivas.
+     */
+
+    if(
+      outsideCount >=
+      EXIT_OUTSIDE_REQUIRED
+    ){
+
+      await endShift(
+        lat,
+        lon
+      );
+
+      resetOutsideCounter();
+
+    }
+
+  }
 
 }
 
@@ -2415,6 +3176,9 @@ $("clear").onclick =
       logs = [];
 
       active = null;
+
+
+      resetOutsideCounter();
 
 
       renderHistory();
@@ -3673,14 +4437,16 @@ $("showLogin").onclick =
 $("logoutBtn").onclick =
   async () => {
 
-    if(watchId){
+    stopAutomaticGeolocation();
 
-      navigator.geolocation
-        .clearWatch(
-          watchId
-        );
 
-      watchId = null;
+    if(scheduleTimer){
+
+      clearInterval(
+        scheduleTimer
+      );
+
+      scheduleTimer = null;
 
     }
 
@@ -3733,6 +4499,47 @@ onAuthStateChanged(
 
         await loadLogs();
 
+
+        /*
+         * Iniciamos el control periódico
+         * del horario.
+         */
+
+        if(scheduleTimer){
+
+          clearInterval(
+            scheduleTimer
+          );
+
+        }
+
+
+        /*
+         * Comprobación inicial inmediata.
+         */
+
+        await updateAutomaticGeolocationSchedule();
+
+
+        /*
+         * Después comprobamos periódicamente.
+         *
+         * Cada 30 segundos es suficiente para
+         * detectar el cambio de horario sin
+         * realizar geolocalización fuera de
+         * la ventana configurada.
+         */
+
+        scheduleTimer =
+          setInterval(
+            async () => {
+
+              await updateAutomaticGeolocationSchedule();
+
+            },
+            30000
+          );
+
       }
       catch(error){
 
@@ -3760,14 +4567,16 @@ onAuthStateChanged(
       active = null;
 
 
-      if(watchId){
+      stopAutomaticGeolocation();
 
-        navigator.geolocation
-          .clearWatch(
-            watchId
-          );
 
-        watchId = null;
+      if(scheduleTimer){
+
+        clearInterval(
+          scheduleTimer
+        );
+
+        scheduleTimer = null;
 
       }
 
@@ -3787,7 +4596,7 @@ onAuthStateChanged(
 
 
 /* =========================================================
-   TEMPORIZADOR
+   TEMPORIZADOR DE INTERFAZ
 ========================================================= */
 
 timer =
