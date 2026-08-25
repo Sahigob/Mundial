@@ -1697,16 +1697,53 @@ $("saveSchedule").onclick =
       navigator.vibrate?.(80);
 
     }
-    catch(error){
+   catch(error){
 
-      console.error(error);
+  console.error(
+    "ERROR GUARDANDO HORARIO:",
+    error
+  );
 
-      $("scheduleMsg").textContent =
-        "No se pudo guardar el horario. Comprueba tu conexión.";
+  let message =
+    "No se pudo guardar el horario.";
 
-      $("scheduleMsg").className =
-        "error";
+  if(
+    error.code === "permission-denied"
+  ){
 
+    message =
+      "Firebase ha rechazado el guardado del horario. Hay que revisar las reglas de Firestore.";
+
+  }
+  else if(
+    error.code === "unavailable"
+  ){
+
+    message =
+      "Firebase no está disponible en este momento. Comprueba la conexión.";
+
+  }
+  else if(
+    error.code === "unauthenticated"
+  ){
+
+    message =
+      "La sesión ha caducado. Cierra sesión y vuelve a entrar.";
+
+  }
+  else if(error.message){
+
+    message =
+      `Error: ${error.message}`;
+
+  }
+
+
+  $("scheduleMsg").textContent =
+    message;
+
+  $("scheduleMsg").className =
+    "error";
     }
     finally{
 
