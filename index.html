@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GeoFichaje">
+
 <title>GeoFichaje</title>
 
 <style>
@@ -92,6 +96,12 @@ button{
   font-size:16px;
   font-weight:700;
   cursor:pointer;
+  -webkit-appearance:none;
+}
+
+button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
 }
 
 .primary{
@@ -107,6 +117,15 @@ button{
 .secondary{
   background:#eef2ff;
   color:#3730a3;
+}
+
+.logout{
+  width:auto;
+  padding:8px 12px;
+  background:#f3f4f6;
+  color:#374151;
+  border-radius:10px;
+  font-size:13px;
 }
 
 input,
@@ -129,6 +148,24 @@ label{
 .small{
   font-size:12px;
   color:var(--muted);
+}
+
+.error{
+  color:#b91c1c;
+  background:#fef2f2;
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+  margin-top:10px;
+}
+
+.success{
+  color:#166534;
+  background:#f0fdf4;
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+  margin-top:10px;
 }
 
 .history-item{
@@ -156,277 +193,649 @@ label{
   font-size:12px;
   margin-top:10px;
 }
+
+.hidden{
+  display:none !important;
+}
+
+.auth-container{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.auth-card{
+  width:100%;
+  max-width:420px;
+  background:white;
+  border-radius:22px;
+  padding:24px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+
+.auth-title{
+  text-align:center;
+  font-size:30px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+
+.auth-subtitle{
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+  margin-bottom:22px;
+}
+
+.auth-switch{
+  text-align:center;
+  margin-top:15px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.link-button{
+  background:none;
+  color:var(--blue);
+  padding:0;
+  width:auto;
+  font-size:13px;
+}
+
+.user-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.user-email{
+  font-size:12px;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.loading{
+  text-align:center;
+  color:var(--muted);
+  padding:30px 10px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- =========================
+     LOGIN / REGISTRO
+========================= -->
 
-  <h1>📍 GeoFichaje</h1>
-  <div class="sub">
-    Registro de jornada por localización
-  </div>
+<div id="authScreen" class="auth-container">
 
-  <!-- ESTADO -->
-  <div class="card">
+  <div class="auth-card">
 
-    <div class="row">
-      <strong>Estado</strong>
-
-      <span id="statusBadge" class="badge off">
-        Fuera
-      </span>
+    <div class="auth-title">
+      📍 GeoFichaje
     </div>
 
-    <div style="margin-top:12px">
-
-      <div class="small">
-        Centro detectado
-      </div>
-
-      <div id="currentSite"
-           style="font-size:20px;font-weight:700">
-        —
-      </div>
-
+    <div class="auth-subtitle">
+      Registro de jornada por localización
     </div>
 
-    <div class="row" style="margin-top:14px">
+    <div id="loginForm">
 
-      <div>
-        <div class="small">
-          Entrada
-        </div>
+      <label>
+        Correo electrónico
+      </label>
 
-        <div id="entryTime"
-             style="font-weight:700">
-          --:--
-        </div>
-      </div>
+      <input
+        id="email"
+        type="email"
+        autocomplete="email"
+        placeholder="tu@email.com"
+      >
 
-      <div style="text-align:right">
+      <label>
+        Contraseña
+      </label>
 
-        <div class="small">
-          Tiempo
-        </div>
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Contraseña"
+      >
 
-        <div id="worked"
-             style="font-weight:700">
-          0 h
-        </div>
-
-      </div>
-
-    </div>
-
-    <div style="margin-top:14px">
-
-      <button id="geoBtn"
-              class="primary">
-        Activar localización
+      <button
+        id="loginBtn"
+        class="primary"
+        type="button"
+      >
+        Entrar
       </button>
 
-      <div style="height:8px"></div>
+      <div class="auth-switch">
 
-      <div class="row" style="gap:8px">
+        ¿No tienes cuenta?
 
-        <button id="manualIn"
-                class="secondary"
-                type="button">
-          Fichar entrada
-        </button>
-
-        <button id="manualOut"
-                class="danger"
-                type="button">
-          Fichar salida
+        <button
+          id="showRegister"
+          class="link-button"
+          type="button"
+        >
+          Crear cuenta
         </button>
 
       </div>
 
     </div>
 
-    <div id="geoMsg"
-         class="small"
-         style="margin-top:8px">
-    </div>
 
-  </div>
-
-
-  <!-- CENTROS -->
-  <div class="card">
-
-    <strong>
-      Mis centros
-    </strong>
-
-    <div style="margin-top:12px">
+    <div id="registerForm" class="hidden">
 
       <label>
-        Nombre
+        Correo electrónico
       </label>
 
-      <input id="name"
-             placeholder="Oreka">
-
+      <input
+        id="registerEmail"
+        type="email"
+        autocomplete="email"
+        placeholder="tu@email.com"
+      >
 
       <label>
-        Latitud
+        Contraseña
       </label>
 
-      <input id="lat"
-             type="number"
-             step="any"
-             placeholder="40.438...">
+      <input
+        id="registerPassword"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Mínimo 6 caracteres"
+      >
 
-
-      <label>
-        Longitud
-      </label>
-
-      <input id="lon"
-             type="number"
-             step="any"
-             placeholder="-3.716...">
-
-
-      <label>
-        Radio (metros)
-      </label>
-
-      <input id="radius"
-             type="number"
-             value="60">
-
-
-      <button id="useLocation"
-              class="secondary"
-              type="button">
-
-        Usar mi ubicación actual
-
+      <button
+        id="registerBtn"
+        class="primary"
+        type="button"
+      >
+        Crear cuenta
       </button>
 
+      <div class="auth-switch">
 
-      <div style="height:8px"></div>
+        ¿Ya tienes cuenta?
 
+        <button
+          id="showLogin"
+          class="link-button"
+          type="button"
+        >
+          Iniciar sesión
+        </button>
 
-      <button id="saveSite"
-              class="primary">
-
-        Guardar centro
-
-      </button>
-
-    </div>
-
-    <div id="sitesList"
-         class="small"
-         style="margin-top:12px">
-    </div>
-
-  </div>
-
-
-  <!-- HISTORIAL -->
-  <div class="card">
-
-    <div class="row">
-
-      <strong>
-        Historial
-      </strong>
-
-      <button id="clear"
-              style="
-                width:auto;
-                padding:8px 12px;
-                background:#f3f4f6;
-                color:#374151;
-                border-radius:10px
-              ">
-
-        Borrar
-
-      </button>
+      </div>
 
     </div>
 
-    <div id="history"
-         style="margin-top:10px">
-    </div>
-
-  </div>
-
-
-  <div class="footer">
-
-    Los datos permanecen en este dispositivo
-    (LocalStorage).
-
-    Para usarla en iPhone, sirve este archivo
-    desde HTTPS y ábrelo con Safari.
+    <div
+      id="authMsg"
+      class="hidden"
+      style="margin-top:12px"
+    ></div>
 
   </div>
 
 </div>
 
 
-<script>
+<!-- =========================
+     APP
+========================= -->
 
-const LS_SITES = "geo_sites_v1";
-const LS_LOGS = "geo_logs_v1";
-const LS_ACTIVE = "geo_active_v1";
+<div id="appScreen" class="hidden">
+
+  <div class="container">
+
+    <div class="user-bar">
+
+      <div class="user-email">
+        <span id="userEmail"></span>
+      </div>
+
+      <button
+        id="logoutBtn"
+        class="logout"
+        type="button"
+      >
+        Cerrar sesión
+      </button>
+
+    </div>
+
+
+    <h1>📍 GeoFichaje</h1>
+
+    <div class="sub">
+      Registro de jornada por localización
+    </div>
+
+
+    <!-- ESTADO -->
+
+    <div class="card">
+
+      <div class="row">
+
+        <strong>
+          Estado
+        </strong>
+
+        <span
+          id="statusBadge"
+          class="badge off"
+        >
+          Fuera
+        </span>
+
+      </div>
+
+
+      <div style="margin-top:12px">
+
+        <div class="small">
+          Centro detectado
+        </div>
+
+        <div
+          id="currentSite"
+          style="font-size:20px;font-weight:700"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <div
+        class="row"
+        style="margin-top:14px"
+      >
+
+        <div>
+
+          <div class="small">
+            Entrada
+          </div>
+
+          <div
+            id="entryTime"
+            style="font-weight:700"
+          >
+            --:--
+          </div>
+
+        </div>
+
+
+        <div style="text-align:right">
+
+          <div class="small">
+            Tiempo
+          </div>
+
+          <div
+            id="worked"
+            style="font-weight:700"
+          >
+            0 h
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div style="margin-top:14px">
+
+        <button
+          id="geoBtn"
+          class="primary"
+        >
+          Activar localización
+        </button>
+
+
+        <div style="height:8px"></div>
+
+
+        <div
+          class="row"
+          style="gap:8px"
+        >
+
+          <button
+            id="manualIn"
+            class="secondary"
+            type="button"
+          >
+            Fichar entrada
+          </button>
+
+
+          <button
+            id="manualOut"
+            class="danger"
+            type="button"
+          >
+            Fichar salida
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="geoMsg"
+        class="small"
+        style="margin-top:8px"
+      ></div>
+
+    </div>
+
+
+    <!-- CENTROS -->
+
+    <div class="card">
+
+      <strong>
+        Mis centros
+      </strong>
+
+      <div style="margin-top:12px">
+
+        <label>
+          Nombre
+        </label>
+
+        <input
+          id="name"
+          placeholder="Oreka"
+        >
+
+
+        <label>
+          Latitud
+        </label>
+
+        <input
+          id="lat"
+          type="number"
+          step="any"
+          placeholder="40.438..."
+        >
+
+
+        <label>
+          Longitud
+        </label>
+
+        <input
+          id="lon"
+          type="number"
+          step="any"
+          placeholder="-3.716..."
+        >
+
+
+        <label>
+          Radio (metros)
+        </label>
+
+        <input
+          id="radius"
+          type="number"
+          value="60"
+        >
+
+
+        <button
+          id="useLocation"
+          class="secondary"
+          type="button"
+        >
+          Usar mi ubicación actual
+        </button>
+
+
+        <div style="height:8px"></div>
+
+
+        <button
+          id="saveSite"
+          class="primary"
+          type="button"
+        >
+          Guardar centro
+        </button>
+
+      </div>
+
+
+      <div
+        id="sitesList"
+        class="small"
+        style="margin-top:12px"
+      ></div>
+
+    </div>
+
+
+    <!-- HISTORIAL -->
+
+    <div class="card">
+
+      <div class="row">
+
+        <strong>
+          Historial
+        </strong>
+
+        <button
+          id="clear"
+          type="button"
+          style="
+            width:auto;
+            padding:8px 12px;
+            background:#f3f4f6;
+            color:#374151;
+            border-radius:10px
+          "
+        >
+          Borrar
+        </button>
+
+      </div>
+
+
+      <div
+        id="history"
+        style="margin-top:10px"
+      ></div>
+
+    </div>
+
+
+    <div class="footer">
+
+      Los datos se guardan de forma segura
+      en Firebase.
+
+      <br><br>
+
+      Para usar la ubicación en iPhone,
+      abre la web mediante HTTPS y permite
+      el acceso a la ubicación.
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script type="module">
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  getDoc,
+  doc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  limit
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+    "AIzaSyDNyEoFSOr5mc9rO-_7SD7x-2v7qkCWsOk",
+
+  authDomain:
+    "control-horaio.firebaseapp.com",
+
+  projectId:
+    "control-horaio",
+
+  storageBucket:
+    "control-horaio.firebasestorage.app",
+
+  messagingSenderId:
+    "755418184004",
+
+  appId:
+    "1:755418184004:web:83d6a96c35ebeb789c3f11",
+
+  measurementId:
+    "G-8RXVWYEVVL"
+
+};
+
+
+const app =
+  initializeApp(firebaseConfig);
+
+
+const auth =
+  getAuth(app);
+
+
+const db =
+  getFirestore(app);
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+let currentUser = null;
+
+let sites = [];
+
+let logs = [];
+
+let active = null;
 
 let watchId = null;
+
 let timer = null;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 const $ = id =>
   document.getElementById(id);
 
 
-function load(key, fallback){
+function show(element){
 
-  return JSON.parse(
-    localStorage.getItem(key)
-    ||
-    JSON.stringify(fallback)
-  );
+  element.classList.remove("hidden");
 
 }
 
 
-function save(key, val){
+function hide(element){
 
-  localStorage.setItem(
-    key,
-    JSON.stringify(val)
-  );
+  element.classList.add("hidden");
 
 }
 
 
-let sites = load(
-  LS_SITES,
-  []
-);
+function showAuthMessage(
+  message,
+  type = "error"
+){
 
-let logs = load(
-  LS_LOGS,
-  []
-);
+  const box =
+    $("authMsg");
 
-let active = load(
-  LS_ACTIVE,
-  null
-);
+  box.textContent =
+    message;
+
+  box.className =
+    type === "success"
+      ? "success"
+      : "error";
+
+  show(box);
+
+}
+
+
+function clearAuthMessage(){
+
+  $("authMsg").textContent = "";
+
+  $("authMsg").className =
+    "hidden";
+
+}
 
 
 function formatTime(d){
 
-  const x = new Date(d);
+  const x =
+    new Date(d);
 
   return x.toLocaleTimeString(
     "es-ES",
@@ -456,11 +865,18 @@ function formatDate(d){
 
 function hours(ms){
 
+  if(ms < 0)
+    ms = 0;
+
   const m =
-    Math.floor(ms / 60000);
+    Math.floor(
+      ms / 60000
+    );
 
   const h =
-    Math.floor(m / 60);
+    Math.floor(
+      m / 60
+    );
 
   const mm =
     m % 60;
@@ -477,22 +893,33 @@ function distance(
   lon2
 ){
 
-  const R = 6371000;
+  const R =
+    6371000;
 
   const toRad =
     x => x * Math.PI / 180;
 
   const dLat =
-    toRad(lat2 - lat1);
+    toRad(
+      lat2 - lat1
+    );
 
   const dLon =
-    toRad(lon2 - lon1);
+    toRad(
+      lon2 - lon1
+    );
 
   const a =
     Math.sin(dLat / 2) ** 2 +
 
-    Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
+    Math.cos(
+      toRad(lat1)
+    ) *
+
+    Math.cos(
+      toRad(lat2)
+    ) *
+
     Math.sin(dLon / 2) ** 2;
 
   return 2 * R *
@@ -503,6 +930,133 @@ function distance(
 
 }
 
+
+function escapeHtml(value){
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+/* =========================================================
+   FIRESTORE PATHS
+========================================================= */
+
+function userSitesCollection(){
+
+  return collection(
+    db,
+    "users",
+    currentUser.uid,
+    "sites"
+  );
+
+}
+
+
+function userLogsCollection(){
+
+  return collection(
+    db,
+    "users",
+    currentUser.uid,
+    "logs"
+  );
+
+}
+
+
+/* =========================================================
+   CARGAR CENTROS
+========================================================= */
+
+async function loadSites(){
+
+  sites = [];
+
+  const snapshot =
+    await getDocs(
+      userSitesCollection()
+    );
+
+  snapshot.forEach(
+    item => {
+
+      sites.push({
+
+        id:item.id,
+
+        ...item.data()
+
+      });
+
+    }
+  );
+
+  renderSites();
+
+}
+
+
+/* =========================================================
+   CARGAR HISTORIAL
+========================================================= */
+
+async function loadLogs(){
+
+  logs = [];
+
+  const q =
+    query(
+      userLogsCollection(),
+      orderBy("in","desc"),
+      limit(100)
+    );
+
+  const snapshot =
+    await getDocs(q);
+
+  snapshot.forEach(
+    item => {
+
+      logs.push({
+
+        id:item.id,
+
+        ...item.data()
+
+      });
+
+    }
+  );
+
+
+  /*
+   * Buscamos si hay una jornada
+   * abierta.
+   */
+
+  active =
+    logs.find(
+      l => !l.out
+    ) || null;
+
+
+  renderHistory();
+
+  updateUI();
+
+}
+
+
+/* =========================================================
+   RENDER CENTROS
+========================================================= */
 
 function renderSites(){
 
@@ -517,65 +1071,128 @@ function renderSites(){
 
 
   $("sitesList").innerHTML =
-    sites.map((s,i) => `
+    sites.map(
+      s => `
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          padding:8px 0;
-          border-top:1px solid #edf2f0
-        "
-      >
-
-        <div>
-
-          <strong>
-            ${s.name}
-          </strong>
-
-          <br>
-
-          ${s.radius} m
-
-        </div>
-
-
-        <button
-          onclick="removeSite(${i})"
+        <div
           style="
-            width:auto;
-            background:#fee2e2;
-            color:#991b1b;
-            padding:6px 10px;
-            border-radius:8px
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:8px 0;
+            border-top:1px solid #edf2f0
           "
         >
 
-          ✕
+          <div>
 
-        </button>
+            <strong>
+              ${escapeHtml(s.name)}
+            </strong>
 
-      </div>
+            <br>
 
-    `).join("");
+            ${s.radius} m
+
+          </div>
+
+
+          <button
+            data-site-id="${escapeHtml(s.id)}"
+            class="delete-site"
+            style="
+              width:auto;
+              background:#fee2e2;
+              color:#991b1b;
+              padding:6px 10px;
+              border-radius:8px
+            "
+            type="button"
+          >
+            ✕
+          </button>
+
+        </div>
+
+      `
+    ).join("");
+
+
+  document
+    .querySelectorAll(".delete-site")
+    .forEach(
+      button => {
+
+        button.onclick =
+          () => removeSite(
+            button.dataset.siteId
+          );
+
+      }
+    );
 
 }
 
 
-window.removeSite = i => {
+/* =========================================================
+   BORRAR CENTRO
+========================================================= */
 
-  sites.splice(i,1);
+async function removeSite(siteId){
 
-  save(
-    LS_SITES,
-    sites
-  );
+  if(!currentUser)
+    return;
 
-  renderSites();
 
-};
+  if(
+    !confirm(
+      "¿Quieres borrar este centro?"
+    )
+  )
+    return;
 
+
+  try{
+
+    await deleteDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "sites",
+        siteId
+      )
+    );
+
+
+    sites =
+      sites.filter(
+        s => s.id !== siteId
+      );
+
+
+    renderSites();
+
+    $("geoMsg").textContent =
+      "Centro eliminado.";
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    alert(
+      "No se pudo borrar el centro."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   RENDER HISTORIAL
+========================================================= */
 
 function renderHistory(){
 
@@ -590,77 +1207,83 @@ function renderHistory(){
 
 
   $("history").innerHTML =
-    [...logs]
-      .reverse()
-      .map(l => {
+    logs
+      .map(
+        l => {
 
-        const total =
-          l.out
-          ?
-          hours(
-            new Date(l.out) -
-            new Date(l.in)
-          )
-          :
-          "En curso";
+          const total =
+            l.out
+              ? hours(
+                  new Date(l.out) -
+                  new Date(l.in)
+                )
+              : "En curso";
 
 
-        return `
+          return `
 
-          <div class="history-item">
+            <div class="history-item">
 
-            <div class="row">
+              <div class="row">
 
-              <div>
+                <div>
 
-                <span class="dot"></span>
+                  <span class="dot"></span>
+
+                  <strong>
+                    ${escapeHtml(l.site || "Centro")}
+                  </strong>
+
+                </div>
+
+                <div class="small">
+
+                  ${formatDate(l.in)}
+
+                </div>
+
+              </div>
+
+
+              <div
+                class="row"
+                style="margin-top:6px"
+              >
+
+                <div>
+
+                  ${formatTime(l.in)}
+
+                  →
+
+                  ${
+                    l.out
+                      ? formatTime(l.out)
+                      : "..."
+                  }
+
+                </div>
 
                 <strong>
-                  ${l.site}
+                  ${total}
                 </strong>
 
               </div>
 
-              <div class="small">
-
-                ${formatDate(l.in)}
-
-              </div>
-
             </div>
 
+          `;
 
-            <div
-              class="row"
-              style="margin-top:6px"
-            >
-
-              <div>
-
-                ${formatTime(l.in)}
-                →
-                ${l.out
-                  ? formatTime(l.out)
-                  : "..."
-                }
-
-              </div>
-
-              <strong>
-                ${total}
-              </strong>
-
-            </div>
-
-          </div>
-
-        `;
-
-      })
+        }
+      )
       .join("");
 
 }
 
+
+/* =========================================================
+   ACTUALIZAR INTERFAZ
+========================================================= */
 
 function updateUI(){
 
@@ -673,14 +1296,17 @@ function updateUI(){
       "badge ok";
 
     $("currentSite").textContent =
-      active.site;
+      active.site || "—";
 
     $("entryTime").textContent =
       formatTime(active.in);
 
+
     const ms =
       Date.now() -
-      new Date(active.in);
+      new Date(active.in)
+        .getTime();
+
 
     $("worked").textContent =
       hours(ms);
@@ -709,119 +1335,63 @@ function updateUI(){
 }
 
 
-function startShift(site){
+/* =========================================================
+   ENCONTRAR CENTRO
+========================================================= */
 
-  if(active)
-    return;
+function findSiteByPosition(
+  lat,
+  lon
+){
 
-
-  active = {
-
-    site:site.name,
-
-    in:new Date()
-      .toISOString()
-
-  };
+  if(!sites.length)
+    return null;
 
 
-  logs.push(active);
+  for(
+    const site of sites
+  ){
+
+    const d =
+      distance(
+        lat,
+        lon,
+        Number(site.lat),
+        Number(site.lon)
+      );
 
 
-  save(
-    LS_ACTIVE,
-    active
-  );
+    if(
+      d <= Number(site.radius)
+    ){
 
+      return {
 
-  save(
-    LS_LOGS,
-    logs
-  );
+        site,
 
+        distance:d
 
-  updateUI();
+      };
 
-  renderHistory();
-
-}
-
-
-function endShift(){
-
-  if(!active)
-    return;
-
-
-  const idx =
-    logs.findIndex(
-      l => l.in === active.in
-    );
-
-
-  if(idx > -1){
-
-    logs[idx].out =
-      new Date()
-        .toISOString();
+    }
 
   }
 
 
-  active = null;
-
-
-  save(
-    LS_ACTIVE,
-    null
-  );
-
-
-  save(
-    LS_LOGS,
-    logs
-  );
-
-
-  updateUI();
-
-  renderHistory();
+  return null;
 
 }
 
 
-function selectedSite(){
+/* =========================================================
+   FICHAR ENTRADA
+========================================================= */
 
-  if(active)
-
-    return sites.find(
-      s => s.name === active.site
-    ) || null;
-
-
-  return sites[0] || null;
-
-}
-
-
-/* FICHAJE MANUAL */
-
-$("manualIn").onclick = () => {
-
-  const site =
-    selectedSite();
-
-
-  if(!site){
-
-    alert(
-      "Primero guarda al menos un centro de trabajo."
-    );
-
-    return;
-
-  }
-
+async function startShift(
+  site,
+  lat,
+  lon
+){
 
   if(active){
 
@@ -834,16 +1404,86 @@ $("manualIn").onclick = () => {
   }
 
 
-  startShift(site);
+  const now =
+    new Date()
+      .toISOString();
 
 
-  $("geoMsg").textContent =
-    "Entrada registrada manualmente.";
+  const shift = {
 
-};
+    site:site.name,
+
+    siteId:site.id || null,
+
+    in:now,
+
+    out:null,
+
+    latIn:Number(lat),
+
+    lonIn:Number(lon)
+
+  };
 
 
-$("manualOut").onclick = () => {
+  try{
+
+    const docRef =
+      await addDoc(
+        userLogsCollection(),
+        shift
+      );
+
+
+    active = {
+
+      id:docRef.id,
+
+      ...shift
+
+    };
+
+
+    logs.unshift(
+      active
+    );
+
+
+    updateUI();
+
+    renderHistory();
+
+    $("geoMsg").textContent =
+      `Entrada registrada en ${site.name}.`;
+
+    $("geoMsg").className =
+      "success";
+
+
+    navigator.vibrate?.(80);
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    alert(
+      "No se pudo registrar la entrada. Comprueba tu conexión."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   FICHAR SALIDA
+========================================================= */
+
+async function endShift(
+  lat = null,
+  lon = null
+){
 
   if(!active){
 
@@ -856,18 +1496,447 @@ $("manualOut").onclick = () => {
   }
 
 
-  endShift();
+  const out =
+    new Date()
+      .toISOString();
 
 
-  $("geoMsg").textContent =
-    "Salida registrada manualmente.";
+  const updateData = {
 
-};
+    out:out
+
+  };
 
 
-/* GEOLOCALIZACIÓN */
+  if(
+    lat !== null &&
+    lon !== null
+  ){
 
-function checkPosition(
+    updateData.latOut =
+      Number(lat);
+
+    updateData.lonOut =
+      Number(lon);
+
+  }
+
+
+  try{
+
+    await updateDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "logs",
+        active.id
+      ),
+      updateData
+    );
+
+
+    const index =
+      logs.findIndex(
+        l => l.id === active.id
+      );
+
+
+    if(index !== -1){
+
+      logs[index] = {
+
+        ...logs[index],
+
+        ...updateData
+
+      };
+
+    }
+
+
+    active = null;
+
+
+    updateUI();
+
+    renderHistory();
+
+
+    $("geoMsg").textContent =
+      "Salida registrada correctamente.";
+
+    $("geoMsg").className =
+      "success";
+
+
+    navigator.vibrate?.(
+      [80,40,80]
+    );
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    alert(
+      "No se pudo registrar la salida. Comprueba tu conexión."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   OBTENER UBICACIÓN ACTUAL
+========================================================= */
+
+function getCurrentPosition(){
+
+  return new Promise(
+    (resolve,reject) => {
+
+      if(
+        !navigator.geolocation
+      ){
+
+        reject(
+          new Error(
+            "Geolocalización no disponible."
+          )
+        );
+
+        return;
+
+      }
+
+
+      navigator.geolocation
+        .getCurrentPosition(
+
+          position => {
+
+            resolve(
+              position
+            );
+
+          },
+
+          error => {
+
+            reject(
+              error
+            );
+
+          },
+
+          {
+
+            enableHighAccuracy:true,
+
+            maximumAge:5000,
+
+            timeout:15000
+
+          }
+
+        );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   FICHAR ENTRADA DESDE BOTÓN
+========================================================= */
+
+$("manualIn").onclick =
+  async () => {
+
+    if(!sites.length){
+
+      alert(
+        "Primero guarda al menos un centro de trabajo."
+      );
+
+      return;
+
+    }
+
+
+    if(active){
+
+      alert(
+        "Ya hay una jornada en curso."
+      );
+
+      return;
+
+    }
+
+
+    $("geoMsg").textContent =
+      "Comprobando tu ubicación...";
+
+    $("geoMsg").className =
+      "small";
+
+
+    try{
+
+      const position =
+        await getCurrentPosition();
+
+
+      const lat =
+        position.coords.latitude;
+
+      const lon =
+        position.coords.longitude;
+
+
+      const result =
+        findSiteByPosition(
+          lat,
+          lon
+        );
+
+
+      if(!result){
+
+        $("geoMsg").textContent =
+          "No estás dentro del radio de ningún centro. No se ha registrado la entrada.";
+
+        $("geoMsg").className =
+          "error";
+
+        return;
+
+      }
+
+
+      $("geoMsg").textContent =
+        `Estás a ${Math.round(result.distance)} m de ${result.site.name}.`;
+
+      $("geoMsg").className =
+        "success";
+
+
+      await startShift(
+        result.site,
+        lat,
+        lon
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      $("geoMsg").textContent =
+        "No se ha podido obtener tu ubicación. Comprueba que Safari tiene permiso para usarla.";
+
+      $("geoMsg").className =
+        "error";
+
+    }
+
+  };
+
+
+/* =========================================================
+   FICHAR SALIDA DESDE BOTÓN
+========================================================= */
+
+$("manualOut").onclick =
+  async () => {
+
+    if(!active){
+
+      alert(
+        "No hay ninguna jornada en curso."
+      );
+
+      return;
+
+    }
+
+
+    $("geoMsg").textContent =
+      "Comprobando tu ubicación...";
+
+    $("geoMsg").className =
+      "small";
+
+
+    try{
+
+      const position =
+        await getCurrentPosition();
+
+
+      const lat =
+        position.coords.latitude;
+
+      const lon =
+        position.coords.longitude;
+
+
+      /*
+       * Para la salida exigimos también
+       * estar dentro de algún centro.
+       */
+
+      const result =
+        findSiteByPosition(
+          lat,
+          lon
+        );
+
+
+      if(!result){
+
+        $("geoMsg").textContent =
+          "No estás dentro del radio del centro. No se ha registrado la salida.";
+
+        $("geoMsg").className =
+          "error";
+
+        return;
+
+      }
+
+
+      await endShift(
+        lat,
+        lon
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      $("geoMsg").textContent =
+        "No se ha podido obtener tu ubicación.";
+
+      $("geoMsg").className =
+        "error";
+
+    }
+
+  };
+
+
+/* =========================================================
+   ACTIVAR GEOLOCALIZACIÓN
+========================================================= */
+
+$("geoBtn").onclick =
+  async () => {
+
+    if(
+      !navigator.geolocation
+    ){
+
+      $("geoMsg").textContent =
+        "Este navegador no soporta geolocalización.";
+
+      $("geoMsg").className =
+        "error";
+
+      return;
+
+    }
+
+
+    try{
+
+      const position =
+        await getCurrentPosition();
+
+
+      $("geoMsg").textContent =
+        "Localización activada. La app comprobará tu posición mientras permanezca abierta.";
+
+      $("geoMsg").className =
+        "success";
+
+
+      checkPosition(
+        position.coords.latitude,
+        position.coords.longitude
+      );
+
+
+      if(watchId){
+
+        navigator.geolocation
+          .clearWatch(
+            watchId
+          );
+
+      }
+
+
+      watchId =
+        navigator.geolocation
+          .watchPosition(
+
+            position => {
+
+              checkPosition(
+                position.coords.latitude,
+                position.coords.longitude
+              );
+
+            },
+
+            error => {
+
+              console.warn(
+                "Error de geolocalización:",
+                error
+              );
+
+            },
+
+            {
+
+              enableHighAccuracy:true,
+
+              maximumAge:10000,
+
+              timeout:15000
+
+            }
+
+          );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      $("geoMsg").textContent =
+        "Permite el acceso a la ubicación en Safari.";
+
+      $("geoMsg").className =
+        "error";
+
+    }
+
+  };
+
+
+/* =========================================================
+   COMPROBAR POSICIÓN
+========================================================= */
+
+async function checkPosition(
   lat,
   lon
 ){
@@ -876,205 +1945,146 @@ function checkPosition(
     return;
 
 
-  let inside = null;
+  const result =
+    findSiteByPosition(
+      lat,
+      lon
+    );
 
 
-  for(
-    const s of sites
-  ){
-
-    const d =
-      distance(
-        lat,
-        lon,
-        s.lat,
-        s.lon
-      );
-
-
-    if(
-      d <= s.radius
-    ){
-
-      inside = s;
-
-      break;
-
-    }
-
-  }
-
+  /*
+   * Si estamos dentro de un centro
+   * y no hay jornada:
+   * entrada automática.
+   */
 
   if(
-    inside &&
+    result &&
     !active
   ){
 
-    startShift(
-      inside
+    await startShift(
+      result.site,
+      lat,
+      lon
     );
-
-    navigator.vibrate?.(80);
-
-  }
-
-
-  if(
-    !inside &&
-    active
-  ){
-
-    endShift();
-
-    navigator.vibrate?.(
-      [80,40,80]
-    );
-
-  }
-
-}
-
-
-$("geoBtn").onclick = () => {
-
-  if(
-    !navigator.geolocation
-  ){
-
-    $("geoMsg").textContent =
-      "Este navegador no soporta geolocalización.";
 
     return;
 
   }
 
 
-  navigator.geolocation
-    .getCurrentPosition(
+  /*
+   * Si salimos del centro mientras
+   * hay jornada activa:
+   *
+   * NO hacemos salida automática
+   * inmediatamente porque el GPS puede
+   * tener pequeñas oscilaciones.
+   *
+   * La salida automática la dejamos
+   * desactivada por ahora.
+   */
 
-      pos => {
-
-        $("geoMsg").textContent =
-          "Localización activada. La app vigilará tu posición mientras esté abierta.";
-
-        checkPosition(
-          pos.coords.latitude,
-          pos.coords.longitude
-        );
-
-      },
-
-      err => {
-
-        $("geoMsg").textContent =
-          "Permite el acceso a la ubicación en Safari.";
-
-      },
-
-      {
-        enableHighAccuracy:true
-      }
-
-    );
+}
 
 
-  if(watchId)
-
-    navigator.geolocation
-      .clearWatch(
-        watchId
-      );
-
-
-  watchId =
-    navigator.geolocation
-      .watchPosition(
-
-        pos => {
-
-          checkPosition(
-            pos.coords.latitude,
-            pos.coords.longitude
-          );
-
-        },
-
-        () => {},
-
-        {
-          enableHighAccuracy:true,
-          maximumAge:10000,
-          timeout:10000
-        }
-
-      );
-
-};
-
-
-/* USAR UBICACIÓN */
+/* =========================================================
+   USAR UBICACIÓN PARA CREAR CENTRO
+========================================================= */
 
 $("useLocation").onclick =
-  () => {
+  async () => {
 
-    navigator.geolocation
-      .getCurrentPosition(
+    try{
 
-        pos => {
+      $("useLocation").disabled =
+        true;
 
-          $("lat").value =
-            pos.coords.latitude
-              .toFixed(6);
+      $("useLocation").textContent =
+        "Obteniendo ubicación...";
 
-          $("lon").value =
-            pos.coords.longitude
-              .toFixed(6);
 
-        }
+      const position =
+        await getCurrentPosition();
 
+
+      $("lat").value =
+        position.coords.latitude
+          .toFixed(6);
+
+
+      $("lon").value =
+        position.coords.longitude
+          .toFixed(6);
+
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      alert(
+        "No se pudo obtener tu ubicación. Comprueba los permisos de Safari."
       );
+
+    }
+    finally{
+
+      $("useLocation").disabled =
+        false;
+
+      $("useLocation").textContent =
+        "Usar mi ubicación actual";
+
+    }
 
   };
 
 
-/* GUARDAR CENTRO */
+/* =========================================================
+   GUARDAR CENTRO
+========================================================= */
 
 $("saveSite").onclick =
-  () => {
+  async () => {
 
-    const site = {
+    if(!currentUser)
+      return;
 
-      name:
-        $("name")
-          .value
-          .trim(),
 
-      lat:
-        parseFloat(
-          $("lat").value
-        ),
+    const name =
+      $("name")
+        .value
+        .trim();
 
-      lon:
-        parseFloat(
-          $("lon").value
-        ),
 
-      radius:
-        parseInt(
-          $("radius").value
-        ) || 60
+    const lat =
+      parseFloat(
+        $("lat").value
+      );
 
-    };
+
+    const lon =
+      parseFloat(
+        $("lon").value
+      );
+
+
+    const radius =
+      parseInt(
+        $("radius").value
+      ) || 60;
 
 
     if(
-      !site.name ||
-      isNaN(site.lat) ||
-      isNaN(site.lon)
+      !name ||
+      isNaN(lat) ||
+      isNaN(lon)
     ){
 
       alert(
-        "Completa todos los campos"
+        "Completa todos los campos."
       );
 
       return;
@@ -1082,68 +2092,568 @@ $("saveSite").onclick =
     }
 
 
-    sites.push(site);
-
-
-    save(
-      LS_SITES,
-      sites
-    );
-
-
-    $("name").value = "";
-
-
-    renderSites();
-
-  };
-
-
-/* BORRAR HISTORIAL */
-
-$("clear").onclick =
-  () => {
-
     if(
-      confirm(
-        "¿Borrar todo el historial?"
-      )
+      lat < -90 ||
+      lat > 90 ||
+      lon < -180 ||
+      lon > 180
     ){
 
-      logs = [];
-
-      active = null;
-
-
-      save(
-        LS_LOGS,
-        logs
+      alert(
+        "Las coordenadas no son válidas."
       );
 
+      return;
 
-      save(
-        LS_ACTIVE,
-        null
+    }
+
+
+    if(
+      radius < 10 ||
+      radius > 5000
+    ){
+
+      alert(
+        "El radio debe estar entre 10 y 5000 metros."
       );
 
+      return;
 
-      renderHistory();
+    }
 
-      updateUI();
+
+    try{
+
+      $("saveSite").disabled =
+        true;
+
+      $("saveSite").textContent =
+        "Guardando...";
+
+
+      const site = {
+
+        name:name,
+
+        lat:lat,
+
+        lon:lon,
+
+        radius:radius
+
+      };
+
+
+      const docRef =
+        await addDoc(
+          userSitesCollection(),
+          site
+        );
+
+
+      sites.push({
+
+        id:docRef.id,
+
+        ...site
+
+      });
+
+
+      renderSites();
+
+
+      $("name").value =
+        "";
+
+
+      $("geoMsg").textContent =
+        `Centro "${name}" guardado correctamente.`;
+
+      $("geoMsg").className =
+        "success";
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      alert(
+        "No se pudo guardar el centro. Comprueba tu conexión."
+      );
+
+    }
+    finally{
+
+      $("saveSite").disabled =
+        false;
+
+      $("saveSite").textContent =
+        "Guardar centro";
 
     }
 
   };
 
 
-/* INICIO */
+/* =========================================================
+   BORRAR HISTORIAL
+========================================================= */
 
-renderSites();
+$("clear").onclick =
+  async () => {
 
-renderHistory();
+    if(!currentUser)
+      return;
 
-updateUI();
 
+    if(!logs.length){
+
+      alert(
+        "No hay historial para borrar."
+      );
+
+      return;
+
+    }
+
+
+    if(
+      !confirm(
+        "¿Borrar todo el historial? Esta acción no se puede deshacer."
+      )
+    ){
+
+      return;
+
+    }
+
+
+    try{
+
+      $("clear").disabled =
+        true;
+
+
+      /*
+       * Borramos uno a uno.
+       */
+
+      for(
+        const log of logs
+      ){
+
+        await deleteDoc(
+          doc(
+            db,
+            "users",
+            currentUser.uid,
+            "logs",
+            log.id
+          )
+        );
+
+      }
+
+
+      logs = [];
+
+      active = null;
+
+
+      renderHistory();
+
+      updateUI();
+
+
+      $("geoMsg").textContent =
+        "Historial borrado.";
+
+      $("geoMsg").className =
+        "success";
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      alert(
+        "No se pudo borrar todo el historial."
+      );
+
+    }
+    finally{
+
+      $("clear").disabled =
+        false;
+
+    }
+
+  };
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+$("loginBtn").onclick =
+  async () => {
+
+    clearAuthMessage();
+
+
+    const email =
+      $("email")
+        .value
+        .trim();
+
+
+    const password =
+      $("password")
+        .value;
+
+
+    if(!email || !password){
+
+      showAuthMessage(
+        "Introduce tu correo y contraseña."
+      );
+
+      return;
+
+    }
+
+
+    try{
+
+      $("loginBtn").disabled =
+        true;
+
+      $("loginBtn").textContent =
+        "Entrando...";
+
+
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      let message =
+        "No se pudo iniciar sesión.";
+
+
+      if(
+        error.code ===
+        "auth/invalid-credential"
+      ){
+
+        message =
+          "Correo o contraseña incorrectos.";
+
+      }
+
+      else if(
+        error.code ===
+        "auth/too-many-requests"
+      ){
+
+        message =
+          "Demasiados intentos. Inténtalo más tarde.";
+
+      }
+
+
+      showAuthMessage(
+        message
+      );
+
+    }
+    finally{
+
+      $("loginBtn").disabled =
+        false;
+
+      $("loginBtn").textContent =
+        "Entrar";
+
+    }
+
+  };
+
+
+/* =========================================================
+   REGISTRO
+========================================================= */
+
+$("registerBtn").onclick =
+  async () => {
+
+    clearAuthMessage();
+
+
+    const email =
+      $("registerEmail")
+        .value
+        .trim();
+
+
+    const password =
+      $("registerPassword")
+        .value;
+
+
+    if(!email || !password){
+
+      showAuthMessage(
+        "Introduce un correo y una contraseña."
+      );
+
+      return;
+
+    }
+
+
+    if(password.length < 6){
+
+      showAuthMessage(
+        "La contraseña debe tener al menos 6 caracteres."
+      );
+
+      return;
+
+    }
+
+
+    try{
+
+      $("registerBtn").disabled =
+        true;
+
+      $("registerBtn").textContent =
+        "Creando cuenta...";
+
+
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      let message =
+        "No se pudo crear la cuenta.";
+
+
+      if(
+        error.code ===
+        "auth/email-already-in-use"
+      ){
+
+        message =
+          "Ese correo ya tiene una cuenta.";
+
+      }
+
+      else if(
+        error.code ===
+        "auth/invalid-email"
+      ){
+
+        message =
+          "El correo electrónico no es válido.";
+
+      }
+
+      else if(
+        error.code ===
+        "auth/weak-password"
+      ){
+
+        message =
+          "La contraseña es demasiado débil.";
+
+      }
+
+
+      showAuthMessage(
+        message
+      );
+
+    }
+    finally{
+
+      $("registerBtn").disabled =
+        false;
+
+      $("registerBtn").textContent =
+        "Crear cuenta";
+
+    }
+
+  };
+
+
+/* =========================================================
+   CAMBIAR LOGIN / REGISTRO
+========================================================= */
+
+$("showRegister").onclick =
+  () => {
+
+    hide(
+      $("loginForm")
+    );
+
+    show(
+      $("registerForm")
+    );
+
+    clearAuthMessage();
+
+  };
+
+
+$("showLogin").onclick =
+  () => {
+
+    hide(
+      $("registerForm")
+    );
+
+    show(
+      $("loginForm")
+    );
+
+    clearAuthMessage();
+
+  };
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+$("logoutBtn").onclick =
+  async () => {
+
+    if(watchId){
+
+      navigator.geolocation
+        .clearWatch(
+          watchId
+        );
+
+      watchId = null;
+
+    }
+
+
+    await signOut(
+      auth
+    );
+
+  };
+
+
+/* =========================================================
+   AUTENTICACIÓN
+========================================================= */
+
+onAuthStateChanged(
+  auth,
+  async user => {
+
+    if(user){
+
+      currentUser =
+        user;
+
+
+      $("userEmail").textContent =
+        user.email || "";
+
+
+      hide(
+        $("authScreen")
+      );
+
+      show(
+        $("appScreen")
+      );
+
+
+      try{
+
+        await loadSites();
+
+        await loadLogs();
+
+      }
+      catch(error){
+
+        console.error(error);
+
+        $("geoMsg").textContent =
+          "No se pudieron cargar los datos de Firebase. Comprueba tu conexión y las reglas de Firestore.";
+
+        $("geoMsg").className =
+          "error";
+
+      }
+
+    }
+
+    else{
+
+      currentUser =
+        null;
+
+      sites = [];
+
+      logs = [];
+
+      active = null;
+
+
+      if(watchId){
+
+        navigator.geolocation
+          .clearWatch(
+            watchId
+          );
+
+        watchId = null;
+
+      }
+
+
+      hide(
+        $("appScreen")
+      );
+
+      show(
+        $("authScreen")
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   TEMPORIZADOR
+========================================================= */
 
 timer =
   setInterval(
