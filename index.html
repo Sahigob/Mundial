@@ -2860,21 +2860,28 @@ async function checkPosition(
    * =======================================================
    */
 
-  if(
-    result &&
-    !active &&
-    isEntryScheduleOpen()
-  ){
+  const result =
+  findSiteByPosition(
+    lat,
+    lon
+  );
 
-    await startShift(
-      result.site,
-      lat,
-      lon
-    );
 
-    return;
+if(
+  result &&
+  !active &&
+  isEntryScheduleOpen()
+){
 
-  }
+  await startShift(
+    result.site,
+    lat,
+    lon
+  );
+
+  return;
+
+}
 
 
   /*
