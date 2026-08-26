@@ -1078,6 +1078,21 @@ let watchId = null;
 let timer = null;
 
 
+/* =========================================================
+   CONTROL DE GEOLOCALIZACIÓN AUTOMÁTICA
+========================================================= */
+
+let geoStarting = false;
+
+let geoActive = false;
+
+let lastPosition = null;
+
+let lastPositionTime = 0;
+
+let shiftOperationInProgress = false;
+
+
 /*
  * =========================================================
  * HORARIO POR DEFECTO
@@ -2210,13 +2225,24 @@ async function startShift(
 
   if(active){
 
-    alert(
-      "Ya hay una jornada en curso."
-    );
+    return;
+
+  }
+
+
+  /*
+   * Evitamos dos fichajes simultáneos
+   * si llegan dos posiciones GPS casi al mismo tiempo.
+   */
+
+  if(shiftOperationInProgress){
 
     return;
 
   }
+
+
+  shiftOperationInProgress = true;
 
 
   const now =
@@ -2285,6 +2311,11 @@ async function startShift(
     alert(
       "No se pudo registrar la entrada. Comprueba tu conexión."
     );
+
+  }
+  finally{
+
+    shiftOperationInProgress = false;
 
   }
 
@@ -2674,108 +2705,281 @@ $("manualOut").onclick =
     }
 
   };
+/* =========================================================
+   INICIAR GEOLOCALIZACIÓN AUTOMÁTICAMENTE
+========================================================= */
 
+async function startAutomaticGeolocation(){
+
+  /*
+   * Evitamos iniciar dos vigilancias
+   * al mismo tiempo.
+   */
+
+  if(geoStarting || geoActive){
+
+    return;
+
+  }
+
+
+  if(!currentUser){
+
+    return;
+
+  }
+
+
+  if(!navigator.geolocation){
+
+    $("geoMsg").textContent =
+      "Este dispositivo no soporta geolocalización.";
+
+    $("geoMsg").className =
+      "error";
+
+    return;
+
+  }
+
+
+  geoStarting = true;
+
+
+  $("geoMsg").textContent =
+    "📍 Activando localización...";
+
+  $("geoMsg").className =
+    "small";
+
+
+  try{
+
+    /*
+     * Primera posición inmediata.
+     */
+
+    const position =
+      await getCurrentPosition();
+
+
+    const lat =
+      position.coords.latitude;
+
+    const lon =
+      position.coords.longitude;
+
+
+    lastPosition = {
+
+      lat,
+
+      lon
+
+    };
+
+
+    lastPositionTime =
+      Date.now();
+
+
+    /*
+     * Comprobamos inmediatamente
+     * si corresponde fichar.
+     */
+
+    await checkPosition(
+      lat,
+      lon
+    );
+
+
+    /*
+     * Por seguridad, eliminamos
+     * una vigilancia anterior.
+     */
+
+   if(watchId){
+
+  navigator.geolocation
+    .clearWatch(
+      watchId
+    );
+
+  watchId = null;
+
+}
+
+geoActive = false;
+
+geoStarting = false;
+
+lastPosition = null;
+
+lastPositionTime = 0;
+
+shiftOperationInProgress = false;
+
+
+    /*
+     * Iniciamos vigilancia continua.
+     */
+
+    watchId =
+      navigator.geolocation
+        .watchPosition(
+
+          async position => {
+
+            const lat =
+              position.coords.latitude;
+
+            const lon =
+              position.coords.longitude;
+
+
+            lastPosition = {
+
+              lat,
+
+              lon
+
+            };
+
+
+            lastPositionTime =
+              Date.now();
+
+
+            await checkPosition(
+              lat,
+              lon
+            );
+
+          },
+
+
+          error => {
+
+            console.warn(
+              "Error de geolocalización:",
+              error
+            );
+
+
+            geoActive = false;
+
+
+            if(error.code === 1){
+
+              $("geoMsg").textContent =
+                "La ubicación está bloqueada. Permite la ubicación para GeoFichaje.";
+
+            }
+            else{
+
+              $("geoMsg").textContent =
+                "Se ha perdido temporalmente la localización.";
+
+            }
+
+
+            $("geoMsg").className =
+              "error";
+
+          },
+
+
+          {
+
+            enableHighAccuracy:true,
+
+            maximumAge:10000,
+
+            timeout:15000
+
+          }
+
+        );
+
+
+    geoActive = true;
+
+
+    $("geoMsg").textContent =
+      "📍 Localización automática activada.";
+
+    $("geoMsg").className =
+      "success";
+
+
+  }
+  catch(error){
+
+    console.error(
+      "Error iniciando geolocalización:",
+      error
+    );
+
+
+    geoActive = false;
+
+
+    if(error.code === 1){
+
+      $("geoMsg").textContent =
+        "Permiso de ubicación denegado. Activa la ubicación para GeoFichaje en Ajustes del iPhone.";
+
+    }
+
+    else if(error.code === 2){
+
+      $("geoMsg").textContent =
+        "No se ha podido determinar tu ubicación.";
+
+    }
+
+    else if(error.code === 3){
+
+      $("geoMsg").textContent =
+        "La obtención de ubicación ha tardado demasiado.";
+
+    }
+
+    else{
+
+      $("geoMsg").textContent =
+        "No se ha podido activar la localización automáticamente.";
+
+    }
+
+
+    $("geoMsg").className =
+      "error";
+
+  }
+  finally{
+
+    geoStarting = false;
+
+  }
+
+}
 
 /* =========================================================
    ACTIVAR GEOLOCALIZACIÓN
 ========================================================= */
 
+/* =========================================================
+   ACTIVAR GEOLOCALIZACIÓN MANUAL
+========================================================= */
+
 $("geoBtn").onclick =
   async () => {
 
-    if(
-      !navigator.geolocation
-    ){
-
-      $("geoMsg").textContent =
-        "Este navegador no soporta geolocalización.";
-
-      $("geoMsg").className =
-        "error";
-
-      return;
-
-    }
-
-
-    try{
-
-      const position =
-        await getCurrentPosition();
-
-
-      $("geoMsg").textContent =
-        "Localización activada. La app comprobará tu posición mientras permanezca abierta.";
-
-      $("geoMsg").className =
-        "success";
-
-
-      await checkPosition(
-        position.coords.latitude,
-        position.coords.longitude
-      );
-
-
-      if(watchId){
-
-        navigator.geolocation
-          .clearWatch(
-            watchId
-          );
-
-      }
-
-
-      watchId =
-        navigator.geolocation
-          .watchPosition(
-
-            position => {
-
-              checkPosition(
-                position.coords.latitude,
-                position.coords.longitude
-              );
-
-            },
-
-            error => {
-
-              console.warn(
-                "Error de geolocalización:",
-                error
-              );
-
-            },
-
-            {
-
-              enableHighAccuracy:true,
-
-              maximumAge:10000,
-
-              timeout:15000
-
-            }
-
-          );
-
-    }
-    catch(error){
-
-      console.error(error);
-
-      $("geoMsg").textContent =
-        "Permite el acceso a la ubicación en Safari.";
-
-      $("geoMsg").className =
-        "error";
-
-    }
+    await startAutomaticGeolocation();
 
   };
-
 
 /* =========================================================
    COMPROBAR POSICIÓN
@@ -4528,7 +4732,20 @@ onAuthStateChanged(
         await loadSites();
 
         await loadLogs();
+/*
+ * =========================================================
+ * INICIO AUTOMÁTICO DE GEOLOCALIZACIÓN
+ * =========================================================
+ */
 
+setTimeout(
+  () => {
+
+    startAutomaticGeolocation();
+
+  },
+  1000
+);
       }
       catch(error){
 
@@ -4598,7 +4815,32 @@ timer =
     updateUI,
     30000
   );
+/* =========================================================
+   REACTIVAR GEOLOCALIZACIÓN AL VOLVER A GEO fichaje
+========================================================= */
 
+document.addEventListener(
+  "visibilitychange",
+  async () => {
+
+    if(
+      document.visibilityState === "visible" &&
+      currentUser
+    ){
+
+      if(
+        !watchId &&
+        !geoStarting
+      ){
+
+        await startAutomaticGeolocation();
+
+      }
+
+    }
+
+  }
+);
 </script>
 
 </body>
